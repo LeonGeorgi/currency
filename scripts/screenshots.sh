@@ -47,7 +47,7 @@ xcodebuild test \
   -resultBundlePath "$output/Results.xcresult" \
   -parallel-testing-enabled NO \
   -test-timeouts-enabled YES \
-  -default-test-execution-time-allowance 300 \
+  -default-test-execution-time-allowance 600 \
   -maximum-test-execution-time-allowance 600 \
   CODE_SIGNING_ALLOWED=NO DEVELOPMENT_TEAM= ONLY_ACTIVE_ARCH=YES
 

@@ -40,9 +40,33 @@ final class ScreenshotTests: XCTestCase {
     }
 
     private func capture(_ name: String) {
-        let attachment = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
-        attachment.name = name
-        attachment.lifetime = .keepAlways
-        add(attachment)
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let window = XCUIApplication().windows.firstMatch
+        let bannerStart = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.12))
+        let top = window.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.01))
+
+        @MainActor func hasSystemBanner() -> Bool {
+            springboard.otherElements["NotificationShortLookView"].exists ||
+                springboard.descendants(matching: .any).matching(
+                    NSPredicate(format: "label CONTAINS %@", "Ready for Apple Intelligence")
+                ).firstMatch.exists
+        }
+
+        // Fresh simulator runtimes can announce that Apple Intelligence is ready.
+        // Swipe the banner area upward; without a banner this only touches the navigation bar.
+        // Check both sides of the screenshot to catch notifications arriving during capture.
+        for _ in 0..<3 {
+            bannerStart.press(forDuration: 0.05, thenDragTo: top)
+            Thread.sleep(forTimeInterval: 0.4)
+            guard !hasSystemBanner() else { continue }
+            let screenshot = XCUIScreen.main.screenshot()
+            guard !hasSystemBanner() else { continue }
+            let attachment = XCTAttachment(screenshot: screenshot)
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+            return
+        }
+        XCTFail("A system notification is covering screenshot \(name)")
     }
 }

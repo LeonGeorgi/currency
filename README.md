@@ -83,7 +83,7 @@ Lokal mit Xcode 26 oder neuer ausführen:
 bash scripts/screenshots.sh
 ```
 
-Das Skript erstellt und entfernt einen eigenen Simulator, verwendet ausschließlich feste Beispieldaten und verändert keine gespeicherten Beträge, Währungslisten oder Widget-Einstellungen der normalen App. Der Screenshot-Modus ist nur in Debug-Builds verfügbar. Die Zeit- und Datenangaben sind absichtlich fest, damit sich Screenshots nur bei relevanten Änderungen unterscheiden. Die UI-Tests liegen im separaten Scheme **Screenshots**; die normalen Unit-Tests bleiben im Scheme **Currency**.
+Das Skript erstellt und entfernt einen eigenen Simulator, verwendet ausschließlich feste Beispieldaten und verändert keine gespeicherten Beträge, Währungslisten oder Widget-Einstellungen der normalen App. Der Screenshot-Modus ist nur in Debug-Builds verfügbar. Die Zeit- und Datenangaben sind absichtlich fest, damit sich Screenshots nur bei relevanten Änderungen unterscheiden. System-Mitteilungsbanner werden vor Aufnahmen entfernt und vor sowie nach der Aufnahme geprüft; verdeckte Bilder werden nicht veröffentlicht. Die UI-Tests liegen im separaten Scheme **Screenshots**; die normalen Unit-Tests bleiben im Scheme **Currency**.
 
 Voraussetzung für den automatischen Commit ist, dass die Repository-Regeln Schreibzugriffe des Actions-Bots auf den Standardbranch erlauben. Der Workflow verwendet dafür das eingebaute `GITHUB_TOKEN` mit `contents: write` ausschließlich im Publish-Job; zusätzliche Secrets sind nicht nötig. Bot-Pushes lösen [keinen weiteren Push-Workflow](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow) aus. Läufe für überholte Commits veröffentlichen keine veraltete README.
 
