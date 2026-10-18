@@ -1,0 +1,222 @@
+[
+  {
+    "language": "de",
+    "scene": "overview-light",
+    "original": "docs/screenshots/originals/de/overview-light.png",
+    "preview": "docs/screenshots/previews/de/overview-light.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 255181,
+    "previewBytes": 28341
+  },
+  {
+    "language": "de",
+    "scene": "history",
+    "original": "docs/screenshots/originals/de/history.png",
+    "preview": "docs/screenshots/previews/de/history.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 192282,
+    "previewBytes": 23859
+  },
+  {
+    "language": "de",
+    "scene": "editing",
+    "original": "docs/screenshots/originals/de/editing.png",
+    "preview": "docs/screenshots/previews/de/editing.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 249015,
+    "previewBytes": 27978
+  },
+  {
+    "language": "de",
+    "scene": "overview-dark",
+    "original": "docs/screenshots/originals/de/overview-dark.png",
+    "preview": "docs/screenshots/previews/de/overview-dark.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 227136,
+    "previewBytes": 29725
+  },
+  {
+    "language": "en",
+    "scene": "overview-light",
+    "original": "docs/screenshots/originals/en/overview-light.png",
+    "preview": "docs/screenshots/previews/en/overview-light.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 249042,
+    "previewBytes": 27544
+  },
+  {
+    "language": "en",
+    "scene": "history",
+    "original": "docs/screenshots/originals/en/history.png",
+    "preview": "docs/screenshots/previews/en/history.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 191473,
+    "previewBytes": 23412
+  },
+  {
+    "language": "en",
+    "scene": "editing",
+    "original": "docs/screenshots/originals/en/editing.png",
+    "preview": "docs/screenshots/previews/en/editing.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 246908,
+    "previewBytes": 27611
+  },
+  {
+    "language": "en",
+    "scene": "overview-dark",
+    "original": "docs/screenshots/originals/en/overview-dark.png",
+    "preview": "docs/screenshots/previews/en/overview-dark.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 221178,
+    "previewBytes": 28810
+  },
+  {
+    "language": "ja",
+    "scene": "overview-light",
+    "original": "docs/screenshots/originals/ja/overview-light.png",
+    "preview": "docs/screenshots/previews/ja/overview-light.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 245747,
+    "previewBytes": 26256
+  },
+  {
+    "language": "ja",
+    "scene": "history",
+    "original": "docs/screenshots/originals/ja/history.png",
+    "preview": "docs/screenshots/previews/ja/history.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 192187,
+    "previewBytes": 23160
+  },
+  {
+    "language": "ja",
+    "scene": "editing",
+    "original": "docs/screenshots/originals/ja/editing.png",
+    "preview": "docs/screenshots/previews/ja/editing.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 241214,
+    "previewBytes": 26257
+  },
+  {
+    "language": "ja",
+    "scene": "overview-dark",
+    "original": "docs/screenshots/originals/ja/overview-dark.png",
+    "preview": "docs/screenshots/previews/ja/overview-dark.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 218323,
+    "previewBytes": 27512
+  },
+  {
+    "language": "es",
+    "scene": "overview-light",
+    "original": "docs/screenshots/originals/es/overview-light.png",
+    "preview": "docs/screenshots/previews/es/overview-light.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 259066,
+    "previewBytes": 28639
+  },
+  {
+    "language": "es",
+    "scene": "history",
+    "original": "docs/screenshots/originals/es/history.png",
+    "preview": "docs/screenshots/previews/es/history.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 192261,
+    "previewBytes": 24097
+  },
+  {
+    "language": "es",
+    "scene": "editing",
+    "original": "docs/screenshots/originals/es/editing.png",
+    "preview": "docs/screenshots/previews/es/editing.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 255253,
+    "previewBytes": 28635
+  },
+  {
+    "language": "es",
+    "scene": "overview-dark",
+    "original": "docs/screenshots/originals/es/overview-dark.png",
+    "preview": "docs/screenshots/previews/es/overview-dark.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 231536,
+    "previewBytes": 29916
+  },
+  {
+    "language": "fr",
+    "scene": "overview-light",
+    "original": "docs/screenshots/originals/fr/overview-light.png",
+    "preview": "docs/screenshots/previews/fr/overview-light.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 256268,
+    "previewBytes": 28455
+  },
+  {
+    "language": "fr",
+    "scene": "history",
+    "original": "docs/screenshots/originals/fr/history.png",
+    "preview": "docs/screenshots/previews/fr/history.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 193647,
+    "previewBytes": 24273
+  },
+  {
+    "language": "fr",
+    "scene": "editing",
+    "original": "docs/screenshots/originals/fr/editing.png",
+    "preview": "docs/screenshots/previews/fr/editing.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 250466,
+    "previewBytes": 28263
+  },
+  {
+    "language": "fr",
+    "scene": "overview-dark",
+    "original": "docs/screenshots/originals/fr/overview-dark.png",
+    "preview": "docs/screenshots/previews/fr/overview-dark.jpg",
+    "width": 1206,
+    "height": 2622,
+    "previewWidth": 320,
+    "originalBytes": 229033,
+    "previewBytes": 29765
+  }
+]
