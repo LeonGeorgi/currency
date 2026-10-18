@@ -29,7 +29,8 @@ permissions:
 
 concurrency:
   group: screenshots-${{ github.ref }}
-  cancel-in-progress: true
+  # Let a Pages deployment finish; obsolete queued runs are skipped below.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   capture:
@@ -43,15 +44,13 @@ jobs:
         run: |
           xcodebuild -version
           xcrun simctl list runtimes
-      - name: Capture all languages and publish thumbnails
+      - name: Capture all languages and build screenshot site
         run: bash scripts/screenshots.sh
       - name: Upload generated gallery
         uses: actions/upload-artifact@v7
         with:
           name: screenshot-gallery
-          path: |
-            README.md
-            docs/screenshots/
+          path: build/Screenshots/Site/
           if-no-files-found: error
           retention-days: 14
       - name: Upload native test results
@@ -69,7 +68,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
-      contents: write
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -89,17 +93,17 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           name: screenshot-gallery
-      - name: Commit updated images and README
+          path: build/Screenshots/Site
+      - name: Configure GitHub Pages
         if: steps.source.outputs.current == 'true'
-        env:
-          TARGET_BRANCH: ${{ github.ref_name }}
-        run: |
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -- README.md docs/screenshots
-          if git diff --cached --quiet; then
-            echo 'Screenshots are unchanged.'
-            exit 0
-          fi
-          git commit -m 'docs: update app screenshots'
-          git push origin "HEAD:$TARGET_BRANCH"
+        uses: actions/configure-pages@v6
+      - name: Upload GitHub Pages artifact
+        if: steps.source.outputs.current == 'true'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: build/Screenshots/Site
+          retention-days: 1
+      - name: Deploy screenshot site
+        if: steps.source.outputs.current == 'true'
+        id: deployment
+        uses: actions/deploy-pages@v5

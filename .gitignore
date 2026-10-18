@@ -6,3 +6,4 @@ xcuserdata/
 .xcodebuildmcp/
 __pycache__/
 *.pyc
+docs/screenshots/
