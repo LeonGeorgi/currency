@@ -45,9 +45,9 @@ func symbol(_ character: String, center: CGPoint, height: CGFloat, opticalOffset
     try svg("<path fill=\"\(color)\" d=\"\(commands.joined(separator: " "))\"/>", named: name)
 }
 
-try svg("<circle cx=\"366\" cy=\"366\" r=\"232\" fill=\"#45DED0\"/>", named: "01-Euro-Coin")
+try svg("<circle cx=\"366\" cy=\"366\" r=\"232\" fill=\"#EAB475\"/>", named: "01-Euro-Coin")
 // Align the center of the Euro's rounded bowl with the coin. The leftward bars
 // shift the full glyph's bounding box, so it needs a small optical correction.
-try symbol("€", center: CGPoint(x: 366, y: 366), height: 240, opticalOffsetX: -20, color: "#F3FFFB", named: "02-Euro")
-try svg("<circle cx=\"658\" cy=\"658\" r=\"232\" fill=\"#F3FFFB\"/>", named: "03-Dollar-Coin")
-try symbol("$", center: CGPoint(x: 658, y: 658), height: 265, color: "#087F83", named: "04-Dollar")
+try symbol("€", center: CGPoint(x: 366, y: 366), height: 240, opticalOffsetX: -20, color: "#FFF5E3", named: "02-Euro")
+try svg("<circle cx=\"658\" cy=\"658\" r=\"232\" fill=\"#FFF5E3\"/>", named: "03-Dollar-Coin")
+try symbol("$", center: CGPoint(x: 658, y: 658), height: 265, color: "#A64D32", named: "04-Dollar")

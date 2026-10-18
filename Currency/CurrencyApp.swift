@@ -9,7 +9,7 @@ struct CurrencyApp: App {
             ContentView()
                 .defaultAppStorage(ScreenshotSupport.defaults)
                 .preferredColorScheme(ScreenshotSupport.colorScheme)
-                .tint(.teal)
+                .tint(Color("AccentColor"))
         }
     }
 }

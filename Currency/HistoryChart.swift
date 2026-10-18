@@ -44,15 +44,15 @@ struct HistoryChart: View {
             Chart {
                 ForEach(rates) { rate in
                     AreaMark(x: .value(String(localized: "Datum"), rate.date), yStart: .value(String(localized: "Minimum"), domain.lowerBound), yEnd: .value(String(localized: "Kurs"), rate.rate))
-                        .foregroundStyle(LinearGradient(colors: [.teal.opacity(0.20), .teal.opacity(0.02)], startPoint: .top, endPoint: .bottom))
+                        .foregroundStyle(LinearGradient(colors: [Color.accentColor.opacity(0.20), Color.accentColor.opacity(0.02)], startPoint: .top, endPoint: .bottom))
                     LineMark(x: .value(String(localized: "Datum"), rate.date), y: .value(String(localized: "Kurs"), rate.rate))
-                        .foregroundStyle(.teal)
+                        .foregroundStyle(Color.accentColor)
                         .accessibilityLabel(rate.date.formatted(APIDate.displayStyle))
                         .accessibilityValue(CurrencyDisplay.amount(rate.rate, code: quote))
                 }
                 if let selected {
                     RuleMark(x: .value(String(localized: "Datum"), selected.date)).foregroundStyle(.secondary.opacity(0.5))
-                    PointMark(x: .value(String(localized: "Datum"), selected.date), y: .value(String(localized: "Kurs"), selected.rate)).foregroundStyle(.teal)
+                    PointMark(x: .value(String(localized: "Datum"), selected.date), y: .value(String(localized: "Kurs"), selected.rate)).foregroundStyle(Color.accentColor)
                 }
             }
             .environment(\.timeZone, APIDate.calendar.timeZone)
@@ -91,6 +91,7 @@ struct CurrencyHistoryView: View {
                 } footer: {
                     Text("Stand: \(latest.date.formatted(APIDate.displayStyle))")
                 }
+                .listRowBackground(Color("CardBackground"))
             }
             Section {
                 Picker("Zeitraum", selection: $period) {
@@ -118,7 +119,10 @@ struct CurrencyHistoryView: View {
                 Link("Tägliche Referenzkurse · Frankfurter", destination: URL(string: "https://frankfurter.dev")!)
                     .font(.caption).foregroundStyle(.secondary)
             }
+            .listRowBackground(Color("CardBackground"))
         }
+        .scrollContentBackground(.hidden)
+        .background(Color("AppBackground"))
         .navigationTitle(Text(verbatim: "\(CurrencyDisplay.flag(for: pair.base)) \(pair.base) → \(CurrencyDisplay.flag(for: pair.quote)) \(pair.quote)"))
         .navigationBarTitleDisplayMode(.inline)
         .task(id: period) { await load() }
