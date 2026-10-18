@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mental currency rules · throwaway prototype</title>
+<style>
+[hidden]{display:none!important}:root{font:16px system-ui;color-scheme:light dark;--accent:#b76a47}body{max-width:1050px;margin:40px auto;padding:0 22px;line-height:1.5}h1{line-height:1.15}label{display:inline-grid;gap:5px;margin:0 16px 14px 0}input,select,button{font:inherit;padding:8px 12px;border:1px solid #8886;border-radius:9px;background:transparent;color:inherit}button{cursor:pointer}button[aria-selected=true]{border-color:var(--accent);color:var(--accent)}.panel{border:1px solid #8885;padding:20px;border-radius:15px;margin:20px 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}.rule{font-size:1.3rem;font-weight:600}.subtle{opacity:.65}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid #8883}nav{display:flex;gap:8px;flex-wrap:wrap}.state{font-variant-numeric:tabular-nums}strong{color:var(--accent)}code{overflow-wrap:anywhere}
+</style>
+<h1>Mental currency rules</h1>
+<p><strong>Throwaway logic prototype.</strong> Can a short search find currency conversion rules that are both easy to remember and accurate enough? Explore the trade-off with fixed Frankfurter reference rates. This is an algorithm experiment, not a change to the iOS app.</p>
+<p class="subtle" id="source"></p>
+<section class="panel">
+<label>From<select id="from"></select></label><label>To<select id="to"></select></label>
+<label>Amount<input id="amount" type="number" min="0" step="any" value="20"></label>
+<label>Preferred error limit<select id="tolerance"><option value="0.01">1%</option><option value="0.02" selected>2%</option><option value="0.03">3%</option><option value="0.05">5%</option><option value="1e-7">0.00001% (stress test)</option></select></label>
+<p><label><input id="adaptive" type="checkbox" checked> Allow up to 3% for a substantially easier rule</label></p>
+<p><button id="swap">Swap currencies</button> <button id="show-custom">Try a custom rate</button> <label id="custom-label" hidden>Custom rate<input id="custom-rate" type="number" min="0.000000001" step="any" value="180"></label></p>
+<div id="state" class="state"></div><div class="cards" id="rules"></div>
+</section>
+<section class="panel"><h2>Guided examples</h2><nav id="tabs" role="tablist"></nav><p id="scenario"></p><div id="steps"></div></section>
+<details class="panel"><summary>What the search considers</summary><p>Up to three mental operations, plus one decimal shift: multiply or divide by integers 2–9, or add/subtract 5%, 10%, 12.5%, 20%, 25%, 50%, one third, or one sixth. At most one percentage adjustment per rule. The default targets 2% error and tries two operations before allowing a third. It accepts up to 3% when the stricter rule costs over 0.8 extra effort points, to avoid a large jump in difficulty for a tiny accuracy gain. A fixed effort heuristic penalizes harder arithmetic. Within the chosen error bound, the least expensive rule wins; precision breaks ties. “More accurate” uses a 1% limit.</p><p>Every percentage or fractional adjustment applies to the result of the previous step. For example, adding 12.5% means dividing that result by 8 and adding that share. Avoid rounding between steps. Reverse conversions are searched independently. Error percentages assume arithmetic without intermediate rounding. The effort weights are a design hypothesis, not validated measurements of human performance.</p><p id="search-stats"></p></details>
+<script id="mental-math-core">
+const MentalMath = (() => {
+  const gcd = (a,b) => b ? gcd(b,a%b) : a;
+  const fraction = (n,d) => {const g=gcd(n,d);return [n/g,d/g];};
+  const operations=[];
+  const multiplyCosts={2:.70,3:1.05,4:.95,5:1.00,6:1.50,7:1.80,8:1.50,9:1.80};
+  const divideCosts={2:.70,3:1.30,4:.95,5:1.00,6:1.65,7:2.10,8:1.50,9:2.10};
+  for(let n=2;n<=9;n++) {
+    operations.push({n,d:1,label:`Multiply by ${n}`,short:`×${n}`,cost:multiplyCosts[n],kind:'multiply'});
+    operations.push({n:1,d:n,label:`Divide by ${n}`,short:`÷${n}`,cost:divideCosts[n],kind:'divide'});
+  }
+  const percentageCosts={5:1.55,10:1.20,12.5:1.75,20:1.35,25:1.15,50:.90};
+  for(const p of [5,10,12.5,20,25,50]) for(const sign of [-1,1]) {
+    const [n,d]=fraction(1000+sign*p*10,1000);
+    operations.push({n,d,label:`${sign>0?'Add':'Subtract'} ${p}% of this result`,short:`${sign>0?'+':'−'}${p}%`,cost:percentageCosts[p],kind:'percent'});
+  }
+  for(const denominator of [3,6]) for(const sign of [-1,1]) {
+    operations.push({n:denominator+sign,d:denominator,label:`${sign>0?'Add':'Subtract'} one ${denominator===3?'third':'sixth'} of this result`,short:`${sign>0?'+':'−'}⅟${denominator}`,cost:denominator===3?1.60:1.85,kind:'percent'});
+  }
+  const scales=Array.from({length:17},(_,i)=>i-8).map(power=>({power,n:power>0?10**power:1,d:power<0?10**-power:1,kind:'scale',short:`${power>0?'×':'÷'}${(10**Math.abs(power)).toLocaleString('en-US')}`,label:`${power>0?'Multiply':'Divide'} by ${(10**Math.abs(power)).toLocaleString('en-US')}`}));
+  function orderSteps(steps,scale) {
+    const multiplying=steps.filter(step=>step.kind==='multiply');
+    const dividing=steps.filter(step=>step.kind==='divide');
+    const percentages=steps.filter(step=>step.kind==='percent');
+    const terminating=dividing.filter(step=>[2,4,5,8].includes(step.d));
+    const recurring=dividing.filter(step=>![2,4,5,8].includes(step.d));
+    return [...(scale&&scale.power<0?[scale]:[]),...multiplying,...(scale&&scale.power>0?[scale]:[]),...terminating,...percentages,...recurring];
+  }
+  const catalogue=new Map();
+  let routes=0;
+  function visit(n,d,steps,cost,percentageCount) {
+    routes++;
+    for(const shift of scales) {
+      const power=shift.power;
+      const [a,b]=fraction(n*shift.n,d*shift.d);
+      const factor=a/b;
+      if(factor<1e-9||factor>1e9) continue;
+      const scale=power?shift:null;
+      // Keep decimal shifts cheap and postpone recurring division until the end.
+      const ordered=orderSteps(steps,scale);
+      const effort=Number((cost+(scale ? 0.18+0.025*Math.abs(power) : 0)).toFixed(6));
+      const key=`${a}/${b}/${steps.length}`,existing=catalogue.get(key);
+      const candidate={factor,numerator:a,denominator:b,steps:ordered,effort,mentalSteps:steps.length};
+      if(!existing||effort<existing.effort||effort===existing.effort&&ordered.length<existing.steps.length) catalogue.set(key,candidate);
+    }
+    if(steps.length===3) return;
+    for(const operation of operations) {
+      if(operation.kind==='percent'&&percentageCount) continue;
+      // An immediately repeated percentage or an inverse pair only adds work.
+      const last=steps.at(-1);
+      if(last&&last.n===operation.d&&last.d===operation.n) continue;
+      const [a,b]=fraction(n*operation.n,d*operation.d);
+      visit(a,b,[...steps,operation],cost+operation.cost,percentageCount+(operation.kind==='percent'?1:0));
+    }
+  }
+  const start=performance.now();
+  visit(1,1,[],0,0);
+  const candidates=[...catalogue.values()].sort((a,b)=>a.factor-b.factor);
+  const constructionMs=performance.now()-start;
+  const distinctFactors=new Set(candidates.map(rule=>`${rule.numerator}/${rule.denominator}`)).size;
+  function lowerBound(value) {
+    let lo=0,hi=candidates.length;
+    while(lo<hi){const mid=(lo+hi)>>1;if(candidates[mid].factor<value)lo=mid+1;else hi=mid;}
+    return lo;
+  }
+  function choose(rate,tolerance=.02,maxMentalSteps=3) {
+    if(!Number.isFinite(rate)||rate<=0||!Number.isFinite(tolerance)||tolerance<0) return null;
+    let best=null;
+    for(let i=lowerBound(rate*(1-tolerance)-Number.EPSILON);i<candidates.length&&candidates[i].factor<=rate*(1+tolerance)+Number.EPSILON;i++) {
+      const candidate=candidates[i];
+      if(candidate.mentalSteps>maxMentalSteps)continue;
+      const error=candidate.factor/rate-1;
+      if(Math.abs(error)>tolerance+1e-12)continue;
+      if(!best||candidate.effort<best.effort||candidate.effort===best.effort&&Math.abs(error)<Math.abs(best.error))best={...candidate,error};
+    }
+    return best;
+  }
+  function recommend(rate,tolerance=.02) {return choose(rate,tolerance,2)??choose(rate,tolerance,3);}
+  function adaptive(rate,preferred=.02) {
+    const strict=recommend(rate,preferred),relaxed=recommend(rate,Math.max(preferred,.03));
+    // Avoid a complexity cliff just because a trivial rule misses 2% slightly.
+    return strict&&(!relaxed||strict.effort<=relaxed.effort+.8)?strict:relaxed;
+  }
+  function trace(rule,amount) {
+    let value=amount;
+    return rule.steps.map(step=>{value=value*step.n/step.d;return {instruction:step.label,value};});
+  }
+  function explain(rule) {return rule.steps.length?rule.steps.map(step=>step.short).join(' → '):'Keep the amount';}
+  return {choose,recommend,adaptive,trace,explain,stats:{routes,candidates:candidates.length,distinctFactors,constructionMs},operations};
+})();
+</script>
+<script id="rate-fixture" type="application/json">{"amount":1.0,"base":"EUR","date":"2026-10-16","rates":{"AUD":1.6171,"BRL":5.7197,"CAD":1.5935,"CHF":0.9272,"CNY":7.524,"CZK":24.323,"DKK":7.4748,"GBP":0.84385,"HKD":8.8316,"HUF":363.08,"IDR":20290.28,"ILS":3.4822,"INR":106.864,"ISK":136.2,"JPY":177.82,"KRW":1499.01,"MXN":20.6871,"MYR":4.5929,"NOK":10.624,"NZD":1.9868,"PHP":70.858,"PLN":4.37,"RON":5.331,"SEK":11.145,"SGD":1.4395,"THB":37.602,"TRY":55.7328,"USD":1.1253,"ZAR":18.493}}</script>
+<script>
+const fixture=JSON.parse(document.getElementById('rate-fixture').textContent),rates={EUR:1,...fixture.rates};
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('en-US',{maximumSignificantDigits:9});
+const percent=n=>`${n>=0?'+':''}${(n*100).toFixed(2)}%`;
+const state={from:'EUR',to:'JPY',amount:20,tolerance:.02,custom:false,customRate:180,adaptive:true};
+for(const id of ['from','to'])for(const code of Object.keys(rates).sort())$(id).add(new Option(code,code));
+$('source').innerHTML=`Frankfurter reference date: <b>${fixture.date}</b>. Cross-rates and reverse rates are derived from the same EUR snapshot. <a href="https://api.frankfurter.dev/v1/latest?base=EUR">Source API</a>. No requests are made by this page.`;
+$('search-stats').textContent=`${MentalMath.stats.routes.toLocaleString()} short routes; ${MentalMath.stats.distinctFactors.toLocaleString()} distinct factors, keeping alternatives with different step counts. Catalogue built in ${MentalMath.stats.constructionMs.toFixed(0)} ms on this device.`;
+function render(){
+  $('from').value=state.from;$('to').value=state.to;$('amount').value=state.amount;$('tolerance').value=state.tolerance;$('custom-rate').value=state.customRate;$('custom-label').hidden=!state.custom;$('adaptive').checked=state.adaptive;
+  const rate=state.custom?state.customRate:rates[state.to]/rates[state.from];
+  const exact=state.amount*rate;
+  $('state').innerHTML=`<p>Direction: <b>${state.from} → ${state.to}</b>${state.custom?' · custom example':''}<br>Rate: <b>${fmt(rate)}</b><br>Amount: <b>${fmt(state.amount)} ${state.from}</b><br>Exact conversion: <b>${fmt(exact)} ${state.to}</b><br>Preferred error limit: <b>${fmt(state.tolerance*100)}%</b><br>Maximum error: <b>${fmt((state.adaptive?Math.max(state.tolerance,.03):state.tolerance)*100)}%</b></p>`;
+  const easy=(state.adaptive?MentalMath.adaptive(rate,state.tolerance):MentalMath.recommend(rate,state.tolerance)),accurate=MentalMath.recommend(rate,.01);
+  $('rules').innerHTML='';
+  for(const [name,rule] of [['Easy',easy],...(easy&&accurate&&easy.factor===accurate.factor?[]:[[easy?'More accurate (within 1%)':'Alternative (within 1%)',accurate]])]){
+    const card=document.createElement('article');card.className='panel';
+    if(!rule){card.innerHTML=`<h3>${name}</h3><p>No rule in the allowed search space meets this limit.</p>`;}
+    else {const result=state.amount*rule.factor;card.innerHTML=`<h3>${name}</h3><p class="rule">${MentalMath.explain(rule)}</p><p>Result: <b>${fmt(result)} ${state.to}</b><br>Difference: <b>${fmt(result-exact)} ${state.to}</b> (${percent(rule.error)})<br>Approximate multiplier: ${fmt(rule.factor)}<br>Mental effort score: ${rule.effort.toFixed(2)}<br>${rule.steps.length} displayed steps (${rule.mentalSteps} arithmetic operations)</p><ol>${MentalMath.trace(rule,state.amount).map(step=>`<li>${step.instruction}: <b>${fmt(step.value)}</b></li>`).join('')}</ol>${name==='Easy'&&easy&&accurate&&easy.factor===accurate.factor?'<p class="subtle">This rule also meets the tighter 1% limit.</p>':''}`;}
+    $('rules').append(card);
+  }
+}
+for(const field of ['from','to','amount','tolerance','custom-rate'])$(field).addEventListener('change',()=>{const key=field==='custom-rate'?'customRate':field;state[key]=['amount','tolerance','custom-rate'].includes(field)?Number($(field).value):$(field).value;render();});
+$('adaptive').onchange=()=>{state.adaptive=$('adaptive').checked;render();};
+$('swap').onclick=()=>{[state.from,state.to]=[state.to,state.from];if(state.custom)state.customRate=1/state.customRate;render();};
+$('show-custom').onclick=()=>{state.custom=!state.custom;render();};
+const scenarios=[
+ {name:'The 180-yen example',description:'Start with the proposed rule, then replace the hypothetical rate with the dated reference rate. Notice how the same rule gains a small measurable error.',steps:[['Use 180 JPY per EUR',()=>Object.assign(state,{from:'EUR',to:'JPY',amount:10,custom:true,customRate:180,tolerance:.02})],['Use the actual reference rate',()=>state.custom=false]]},
+ {name:'Reverse conversion',description:'A reverse rule needs its own search. Adding 10% does not undo subtracting 10%. Compare both directions and their error.',steps:[['Convert EUR to JPY',()=>Object.assign(state,{from:'EUR',to:'JPY',amount:20,custom:false,tolerance:.02})],['Convert 1,000 JPY back to EUR',()=>Object.assign(state,{from:'JPY',to:'EUR',amount:1000})]]},
+ {name:'Precision trade-off',description:'A stricter error limit can require noticeably harder arithmetic. The effort score is a hypothesis to evaluate, not a guarantee about human performance.',steps:[['Allow 3% for EUR to CHF',()=>Object.assign(state,{from:'EUR',to:'CHF',amount:50,custom:false,tolerance:.03,adaptive:false})],['Tighten the limit to 1%',()=>state.tolerance=.01],['Try an unrealistic 0.00001% target',()=>{state.tolerance=.0000001;state.adaptive=false;state.custom=true;state.customRate=Math.PI;}]]},
+ {name:'Very large and small rates',description:'Decimal shifts keep the arithmetic short even for currencies with very different nominal values.',steps:[['EUR to IDR',()=>Object.assign(state,{from:'EUR',to:'IDR',amount:20,custom:false,tolerance:.02})],['100,000 IDR to EUR',()=>Object.assign(state,{from:'IDR',to:'EUR',amount:100000})]]}
+];
+function scenario(index){$('tabs').querySelectorAll('button').forEach((button,i)=>button.setAttribute('aria-selected',i===index));const item=scenarios[index];$('scenario').textContent=item.description;$('steps').innerHTML='';Object.assign(state,{from:'EUR',to:'JPY',amount:20,custom:false,tolerance:.02,adaptive:true});for(const [title,action] of item.steps){const button=document.createElement('button');button.textContent=title;button.style.marginRight='8px';button.onclick=()=>{action();render();};$('steps').append(button);}render();}
+scenarios.forEach((item,index)=>{const button=document.createElement('button');button.textContent=item.name;button.setAttribute('role','tab');button.onclick=()=>scenario(index);$('tabs').append(button);});
+scenario(0);
+</script>
+</html>
