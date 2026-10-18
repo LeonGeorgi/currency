@@ -28,7 +28,7 @@ if not runtimes:
     sys.exit("No available iOS 26+ simulator runtime. Install one in Xcode Settings > Components.")
 print(max(runtimes, key=lambda r: tuple(map(int, r["version"].split("."))))["identifier"])
 ')"
-  simulator_id="$(xcrun simctl create 'Devisen Screenshots' com.apple.CoreSimulator.SimDeviceType.iPhone-17 "$runtime_id")"
+  simulator_id="$(xcrun simctl create 'Currencies Screenshots' com.apple.CoreSimulator.SimDeviceType.iPhone-17 "$runtime_id")"
   created_simulator=true
 fi
 

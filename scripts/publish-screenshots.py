@@ -12,8 +12,9 @@ import tempfile
 from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
-LANGUAGES = {"de": "Deutsch", "en": "English", "ja": "日本語", "es": "Español", "fr": "Français"}
-SCENES = {"overview-light": "Übersicht", "history": "Verlauf", "editing": "Bearbeiten", "overview-dark": "Dunkelmodus"}
+LANGUAGES = {"en": "English", "de": "German", "ja": "Japanese", "es": "Spanish", "fr": "French"}
+SCENES = {"overview-light": "Overview", "history": "History", "editing": "Editing", "overview-dark": "Dark mode"}
+PRIMARY_LANGUAGE = "en"
 START = "<!-- screenshots:start -->"
 END = "<!-- screenshots:end -->"
 PREVIEW_WIDTH = 320
@@ -67,18 +68,17 @@ def preview(language, scene, base_url):
 def gallery(base_url):
     lines = [
         START, "## Screenshots", "",
-        "Automatisch mit nativen UI-Tests erstellt, mit festen Beispieldaten. "
-        "Hier werden nur verkleinerte JPEGs geladen (320 Pixel breit). "
-        "Ein Klick öffnet das unverkleinerte PNG. Die Bilder werden über GitHub Pages "
-        "bereitgestellt und nicht im Git-Repository gespeichert.", "",
+        "Captured automatically by native UI tests using fixed sample data. "
+        "Only small JPEG previews (320 pixels wide) load here; click an image to open the full-resolution PNG. "
+        "Images are hosted on GitHub Pages and are not stored in the Git repository.", "",
         "| " + " | ".join(SCENES.values()) + " |",
         "| " + " | ".join("---" for _ in SCENES) + " |",
-        "| " + " | ".join(preview("de", scene, base_url) for scene in SCENES) + " |", "",
-        "| " + " | ".join(name for code, name in LANGUAGES.items() if code != "de") + " |",
-        "| " + " | ".join("---" for code in LANGUAGES if code != "de") + " |",
-        "| " + " | ".join(preview(code, "overview-light", base_url) for code in LANGUAGES if code != "de") + " |", "",
-        "<details>", "<summary>Alle Originale in voller Auflösung (PNG)</summary>", "",
-        "| Sprache | " + " | ".join(SCENES.values()) + " |",
+        "| " + " | ".join(preview(PRIMARY_LANGUAGE, scene, base_url) for scene in SCENES) + " |", "",
+        "| " + " | ".join(name for code, name in LANGUAGES.items() if code != PRIMARY_LANGUAGE) + " |",
+        "| " + " | ".join("---" for code in LANGUAGES if code != PRIMARY_LANGUAGE) + " |",
+        "| " + " | ".join(preview(code, "overview-light", base_url) for code in LANGUAGES if code != PRIMARY_LANGUAGE) + " |", "",
+        "<details>", "<summary>All full-resolution originals (PNG)</summary>", "",
+        "| Language | " + " | ".join(SCENES.values()) + " |",
         "| --- | " + " | ".join("---" for _ in SCENES) + " |",
     ]
     for code, language in LANGUAGES.items():
@@ -90,13 +90,13 @@ def gallery(base_url):
 
 def site_index():
     lines = [
-        '<!doctype html><html lang="de"><meta charset="utf-8">',
+        '<!doctype html><html lang="en"><meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width, initial-scale=1">',
-        '<title>Devisen · Screenshots</title>',
+        '<title>Currencies · Screenshots</title>',
         '<style>html{font-family:system-ui;color-scheme:light dark}body{max-width:900px;margin:40px auto;padding:0 20px}'
         'section{display:flex;flex-wrap:wrap;gap:20px}figure{margin:0}img{border-radius:20px;width:180px;height:auto}'
         'figcaption{margin:8px 0 20px}</style>',
-        '<h1>Devisen · Screenshots</h1><p>Ein Klick öffnet das Original in voller Auflösung.</p>',
+        '<h1>Currencies · Screenshots</h1><p>Click an image to open the full-resolution original.</p>',
     ]
     for code, language in LANGUAGES.items():
         lines.append(f'<h2>{escape(language)}</h2><section>')
@@ -158,7 +158,7 @@ def main():
         shutil.copytree(stage, args.output, dirs_exist_ok=True)
 
     print(f"Built {len(manifest)} original PNGs and {len(manifest)} JPEG previews in {args.output}.")
-    print(f"README loads {sum(entry['previewBytes'] for entry in manifest if entry['language'] == 'de' or entry['scene'] == 'overview-light'):,} bytes of previews.")
+    print(f"README loads {sum(entry['previewBytes'] for entry in manifest if entry['language'] == PRIMARY_LANGUAGE or entry['scene'] == 'overview-light'):,} bytes of previews.")
 
 
 if __name__ == "__main__":

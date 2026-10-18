@@ -1,99 +1,106 @@
-# Devisen
+# Currencies
 
-Eine kleine native iPhone- und iPad-App ab iOS 26 mit SwiftUI, Swift Charts und einem synchronisierten WidgetKit-Widget. Keine externen Bibliotheken, kein API-Schlüssel.
+A small native iPhone and iPad app for iOS 26 and later, built with SwiftUI, Swift Charts, and a synchronized WidgetKit widget. No external libraries or API key required.
 
 <!-- screenshots:start -->
 ## Screenshots
 
-Automatisch mit nativen UI-Tests erstellt, mit festen Beispieldaten. Hier werden nur verkleinerte JPEGs geladen (320 Pixel breit). Ein Klick öffnet das unverkleinerte PNG. Die Bilder werden über GitHub Pages bereitgestellt und nicht im Git-Repository gespeichert.
+Captured automatically by native UI tests using fixed sample data. Only small JPEG previews (320 pixels wide) load here; click an image to open the full-resolution PNG. Images are hosted on GitHub Pages and are not stored in the Git repository.
 
-| Übersicht | Verlauf | Bearbeiten | Dunkelmodus |
+| Overview | History | Editing | Dark mode |
 | --- | --- | --- | --- |
-| <a href="https://leongeorgi.github.io/currency/screenshots/originals/de/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/de/overview-light.jpg" alt="Deutsch · Übersicht" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/de/history.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/de/history.jpg" alt="Deutsch · Verlauf" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/de/editing.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/de/editing.jpg" alt="Deutsch · Bearbeiten" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/de/overview-dark.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/de/overview-dark.jpg" alt="Deutsch · Dunkelmodus" width="180"></a> |
+| <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/overview-light.jpg" alt="English · Overview" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/history.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/history.jpg" alt="English · History" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/editing.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/editing.jpg" alt="English · Editing" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/overview-dark.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/overview-dark.jpg" alt="English · Dark mode" width="180"></a> |
 
-| English | 日本語 | Español | Français |
+| German | Japanese | Spanish | French |
 | --- | --- | --- | --- |
-| <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/overview-light.jpg" alt="English · Übersicht" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/ja/overview-light.jpg" alt="日本語 · Übersicht" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/es/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/es/overview-light.jpg" alt="Español · Übersicht" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/fr/overview-light.jpg" alt="Français · Übersicht" width="180"></a> |
+| <a href="https://leongeorgi.github.io/currency/screenshots/originals/de/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/de/overview-light.jpg" alt="German · Overview" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/ja/overview-light.jpg" alt="Japanese · Overview" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/es/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/es/overview-light.jpg" alt="Spanish · Overview" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/fr/overview-light.jpg" alt="French · Overview" width="180"></a> |
 
 <details>
-<summary>Alle Originale in voller Auflösung (PNG)</summary>
+<summary>All full-resolution originals (PNG)</summary>
 
-| Sprache | Übersicht | Verlauf | Bearbeiten | Dunkelmodus |
+| Language | Overview | History | Editing | Dark mode |
 | --- | --- | --- | --- | --- |
-| Deutsch | [Übersicht](https://leongeorgi.github.io/currency/screenshots/originals/de/overview-light.png) | [Verlauf](https://leongeorgi.github.io/currency/screenshots/originals/de/history.png) | [Bearbeiten](https://leongeorgi.github.io/currency/screenshots/originals/de/editing.png) | [Dunkelmodus](https://leongeorgi.github.io/currency/screenshots/originals/de/overview-dark.png) |
-| English | [Übersicht](https://leongeorgi.github.io/currency/screenshots/originals/en/overview-light.png) | [Verlauf](https://leongeorgi.github.io/currency/screenshots/originals/en/history.png) | [Bearbeiten](https://leongeorgi.github.io/currency/screenshots/originals/en/editing.png) | [Dunkelmodus](https://leongeorgi.github.io/currency/screenshots/originals/en/overview-dark.png) |
-| 日本語 | [Übersicht](https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-light.png) | [Verlauf](https://leongeorgi.github.io/currency/screenshots/originals/ja/history.png) | [Bearbeiten](https://leongeorgi.github.io/currency/screenshots/originals/ja/editing.png) | [Dunkelmodus](https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-dark.png) |
-| Español | [Übersicht](https://leongeorgi.github.io/currency/screenshots/originals/es/overview-light.png) | [Verlauf](https://leongeorgi.github.io/currency/screenshots/originals/es/history.png) | [Bearbeiten](https://leongeorgi.github.io/currency/screenshots/originals/es/editing.png) | [Dunkelmodus](https://leongeorgi.github.io/currency/screenshots/originals/es/overview-dark.png) |
-| Français | [Übersicht](https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-light.png) | [Verlauf](https://leongeorgi.github.io/currency/screenshots/originals/fr/history.png) | [Bearbeiten](https://leongeorgi.github.io/currency/screenshots/originals/fr/editing.png) | [Dunkelmodus](https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-dark.png) |
+| English | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/en/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/en/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/en/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/en/overview-dark.png) |
+| German | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/de/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/de/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/de/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/de/overview-dark.png) |
+| Japanese | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/ja/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/ja/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-dark.png) |
+| Spanish | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/es/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/es/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/es/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/es/overview-dark.png) |
+| French | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/fr/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/fr/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-dark.png) |
 
 </details>
 
 <!-- screenshots:end -->
 
-## Starten
+## Getting started
 
-1. `Currency.xcodeproj` in Xcode 26 oder neuer öffnen.
-2. Scheme **Currency** und einen iPhone-Simulator auswählen, dann ausführen.
-3. Für ein echtes Gerät in beiden Targets ein eigenes Signing-Team auswählen. Bundle-IDs und die Build-Einstellung `APP_GROUP_IDENTIFIER` auf eigene registrierte IDs ändern. App und Widget müssen dieselbe App Group verwenden. Die Entitlements und Info.plist-Dateien beziehen den Wert automatisch aus dieser Build-Einstellung.
+1. Open `Currency.xcodeproj` in Xcode 26 or later.
+2. Select the **Currency** scheme and an iPhone simulator, then run the app.
+3. To run on a physical device, select your signing team for both targets. Set the bundle identifiers and the `APP_GROUP_IDENTIFIER` build setting to your own registered identifiers. The app and widget must use the same App Group; their entitlements and Info.plist files read this build setting automatically.
 
-## Bedienung
+## Using the app
 
-- Oben stehen Hauptwährung und Betrag großzügig zentriert. Die Vergleiche erscheinen darunter als einzelne Karten; über den Plus-Button wird die Auswahl bearbeitet. Betrag und Währungsauswahl bleiben beim Schließen der App gespeichert. Kurse und Ergebnisse zeigen Währungssymbole und bis zu zwölf signifikante Stellen. Native Flaggen-Emojis kennzeichnen die Währungen in App und Widget; für den Euro wird die EU-Flagge verwendet, für Währungen ohne eindeutige Länderflagge ein Globus.
-- Über den Währungscode die Hauptwährung wählen. Über den **Plus-Button** mehrere Vergleichswährungen an- oder abwählen. Die Listen lassen sich nach Namen und Code durchsuchen.
-- Über **Bearbeiten** oben links erscheinen die nativen Verschiebegriffe und Löschbuttons. Die Reihenfolge bleibt gespeichert und bestimmt die ersten drei Währungen im Widget. Auch eine leere Vergleichsliste wird gespeichert.
-- Der Pfeil-Button rechts neben jeder Vergleichswährung macht sie zur Hauptwährung. Die alte Hauptwährung nimmt ihren Platz in der Vergleichsliste ein; die übrigen Vergleiche und der eingegebene Betrag bleiben erhalten.
-- Ein Tippen auf eine Vergleichswährung öffnet deren Verlauf auf einer eigenen Seite. Dort einen Zeitraum wählen und das Diagramm zum Ablesen berühren. Es zeigt den Kurs pro einer Einheit der Ausgangswährung, unabhängig vom eingegebenen Betrag. Fünf Jahre verwenden wöchentliche, zehn Jahre monatliche Datenpunkte.
-- Zum Aktualisieren nach unten ziehen oder **… → Aktualisieren** wählen. Datenquelle und Widget-Hilfe stehen unter **… → Über Devisen**.
-- Homescreen gedrückt halten → **Bearbeiten → Widget hinzufügen → Devisen**. Das Widget unterstützt kleine und mittlere Größen: kompakt mit hervorgehobenem Ausgangsbetrag oder mit separatem Betragsbereich und Vergleichskarten. Beide verwenden native SwiftUI-Layouts und Systemfarben für Hell- und Dunkelmodus. Das Widget übernimmt automatisch den Betrag, die Hauptwährung und die ersten drei Vergleichswährungen in der Reihenfolge der App. Es hat keine eigene Auswahl mehr. Ein Tippen öffnet die App und erhält ihre vollständige Liste, auch wenn sie mehr als drei Vergleiche enthält.
+- The base currency and amount appear at the top, with comparison currencies in separate cards below. The amount and currency selection are saved between launches. Rates and converted amounts include currency symbols and up to twelve significant digits. Native flag emoji identify currencies in both the app and widget; the euro uses the EU flag, and currencies without a single associated country use a globe.
+- Tap the base currency code to change it. Use the **plus button** to select multiple comparison currencies. Both pickers support searching by currency name or code.
+- Tap **Edit** at the top left to show native reorder handles and delete buttons. The saved order determines which three currencies appear in the widget. An empty comparison list is also saved.
+- The arrow button on each comparison card makes that currency the base. The previous base takes its place in the comparison list; the other currencies and entered amount are preserved.
+- Tap a comparison currency to open its history. Choose a period and touch the chart to inspect individual rates. The chart shows the rate for one unit of the base currency, regardless of the entered amount. Five-year charts use weekly data points; ten-year charts use monthly points. **Start at zero** controls the vertical axis baseline and saves each change immediately, including across app restarts.
+- Pull down to refresh or choose **… → Refresh**. Data source information and widget instructions are available under **… → About Currencies**.
+- To add a widget, touch and hold the Home Screen, then choose **Edit → Add Widget → Currencies**. Small widgets show a compact conversion list; medium widgets have a separate amount area and comparison cards. Both use native SwiftUI layouts and system backgrounds for light and dark mode. The widget follows the app's amount, base currency, and first three comparison currencies in their saved order. Tapping it opens the app without replacing its full currency list.
 
-## Sprachen
+## Languages
 
-App und Widget unterstützen Deutsch, Englisch, Japanisch, Spanisch und Französisch. Die Sprache wird automatisch anhand der iOS-Sprachpräferenzen gewählt; eine eigene App-Sprache lässt sich in den iOS-Einstellungen festlegen. Auch App-Name, Widget-Galerie, Hilfetexte, Fehlermeldungen, Diagramm-Zeiträume und VoiceOver-Beschreibungen sind übersetzt. Währungsnamen, Symbole, Beträge und Datumsangaben verwenden die nativen Formate der gewählten Sprache und Region. Gespeicherte Beträge und Währungsauswahl bleiben bei einem Sprachwechsel erhalten.
+The app and widget support English, German, Japanese, Spanish, and French. They follow iOS language preferences; you can also set a language for the app in iOS Settings. App names, widget gallery descriptions, help, errors, chart periods, and VoiceOver labels are localized. Currency names, symbols, numbers, and dates use the native formatting for the selected language and region. Changing the language preserves the saved amount and currency selection.
 
-Die gemeinsamen nativen String Catalogs liegen unter `Shared/Localizable.xcstrings` und `Shared/InfoPlist.xcstrings` und werden in beide Targets eingebunden. Neue Oberflächentexte sollten als SwiftUI-Lokalisierungsschlüssel oder mit `String(localized:)` angelegt werden; die stabilen internen Zeitraumwerte bleiben sprachunabhängig, damit vorhandene Verlaufscaches weiterverwendet werden.
+The shared native String Catalogs, `Shared/Localizable.xcstrings` and `Shared/InfoPlist.xcstrings`, are included in both targets. Add new interface text as SwiftUI localization keys or with `String(localized:)`. Internal period identifiers remain language-independent so existing history caches continue to work. Repository documentation and screenshot gallery captions are in English; the app retains all five localizations.
 
-## Daten und Aktualisierung
+## Data and updates
 
-Die App verwendet die öffentliche [Frankfurter-v2-API](https://frankfurter.dev/): `/currencies`, `/rate/{base}/{quote}` und `/rates` mit `base`, `quotes`, `from`, `to` und optional `group`. Die Kurse sind tägliche Referenzkurse. Der angezeigte Datenstand kommt aus der API, nicht aus der Abrufzeit. Es gibt keine Intraday- oder garantierten Transaktionskurse.
+The app uses the public [Frankfurter v2 API](https://frankfurter.dev/): `/currencies`, `/rate/{base}/{quote}`, and `/rates`, with `base`, `quotes`, `from`, `to`, and optional `group` parameters. Rates are daily reference rates. The displayed date comes from the API, rather than the time of the request. These are not intraday or guaranteed transaction rates.
 
-Kurse und Zeitreihen werden lokal zwischengespeichert. App und Widget teilen die letzten Kurse über die App Group; Betrag und die geordnete Währungsauswahl werden zusätzlich als eine atomare Datei in der App Group gespeichert. Die App ist die einzige Quelle für diese Einstellungen; das Widget liest sie und begrenzt lediglich seine Anzeige auf die ersten drei Vergleiche. Bei einem fehlgeschlagenen Abruf werden gespeicherte Daten als solche gekennzeichnet. Ohne gespeicherte Daten wird ein leerer Fehlerzustand angezeigt. Beispielkurse werden nur in der Widget-Vorschau und im separaten Debug-Screenshot-Modus verwendet.
+Rates and time series are cached locally. The app and widget share the latest rates through their App Group. The amount and ordered currency selection are also saved as an atomic file in that group. The app owns these settings; the widget reads them and displays the first three comparisons. Failed requests fall back to cached data and mark it accordingly. Without cached data, the interface shows an empty error state. Sample rates are used only in widget previews and the separate debug screenshot mode.
 
-Nach Änderungen in der App wird das Widget zur Aktualisierung aufgefordert. Eingaben werden dabei kurz gebündelt, beim Verlassen der App sofort veröffentlicht. Zusätzlich bittet das Widget iOS nach vier Stunden um eine neue Timeline, bei Fehlern nach 30 Minuten. Den tatsächlichen Zeitpunkt bestimmt iOS.
+Changes in the app request a widget refresh. Amount edits are briefly debounced and published immediately when the app leaves the foreground. The widget also requests a new timeline after four hours, or after thirty minutes when an error occurs. iOS determines the actual refresh time.
 
-## Aufbau
+## Project structure
 
-- `Currency/`: SwiftUI-Oberfläche und beobachtbares Zustandsmodell.
-- `Currency/AppIcon.icon`: Mehrschichtiges, direkt in Xcode eingebundenes Icon-Composer-Dokument mit getrennten Münz- und Symbolebenen. Licht, Material und die Systemdarstellungen werden von Apples Icon Composer gerendert; der Dunkelmodus hat eine eigene kontrastreiche Symbolfüllung.
-- `Design/Icon/`: SVG-Quelldateien und ein Swift-Skript zum erneuten Erzeugen der Vektorpfade. Zum Aktualisieren `swift Design/Icon/generate.swift Currency/AppIcon.icon/Assets` ausführen, während das Dokument im Icon Composer geschlossen ist. Das Euro-Zeichen ist optisch anhand seines runden Bogens auf die Münzmitte ausgerichtet; die Korrektur ist im Generator hinterlegt.
-- `Shared/`: API-Client, Modelle und Cache, gemeinsam von App und Widget kompiliert.
-- `Shared/Assets.xcassets`: Gemeinsame Terrakotta-Akzentfarbe für App und Widget mit angepasster Helligkeit im Dunkelmodus. Hintergründe und Karten verwenden native semantische Systemfarben; die warme Palette bleibt auf Icon und Akzente beschränkt.
-- `CurrencyWidget/`: Statisches Widget mit gemeinsamer App-Auswahl und Timeline.
-- `CurrencyTests/`: HTTP-Fixtures, Decoding, Zeitreihenanfragen, Fehlerbehandlung, Cache und Widget-Deep-Links.
+- `Currency/`: SwiftUI views and observable application state.
+- `Currency/AppIcon.icon`: A layered Icon Composer document included directly in Xcode, with separate coin and currency symbol layers. Apple's Icon Composer supplies lighting, materials, and system appearances; dark mode uses a separate high-contrast symbol fill.
+- `Design/Icon/`: SVG source layers and a Swift script that regenerates the vector paths. Run `swift Design/Icon/generate.swift Currency/AppIcon.icon/Assets` with the document closed in Icon Composer. The euro symbol is optically aligned using its rounded bowl; the adjustment is preserved in the generator.
+- `Shared/`: API client, models, settings, and cache compiled into both the app and widget.
+- `Shared/Assets.xcassets`: A shared terracotta accent color with adjusted brightness in dark mode. Backgrounds and cards use native semantic system colors; the icon, controls, and chart retain the warm colors.
+- `CurrencyWidget/`: A static widget configuration using the app's selection and a timeline provider.
+- `CurrencyTests/`: HTTP fixtures and tests for decoding, history requests, error handling, caching, and widget deep links.
+- `CurrencyScreenshotTests/`: Native UI tests for the automated screenshot gallery.
 
-## Prüfung
+## Testing
 
-### Automatische Screenshots
+### Automated screenshots
 
-Der [GitHub-Workflow](.github/workflows/screenshots.yml) erstellt die Screenshots bei Änderungen an App, Übersetzungen oder Screenshot-Skripten auf `main` und in Pull Requests. Er lässt sich auch unter **Actions → App screenshots → Run workflow** starten. Auf dem Standardbranch werden PNG-Originale und kleine JPEG-Vorschauen direkt als Build-Artefakt auf [GitHub Pages](https://leongeorgi.github.io/currency/) veröffentlicht. Der Workflow benötigt keine Git-Schreibrechte und erzeugt keine Commits. Die README verwendet feste externe URLs, deren Inhalte mit jedem erfolgreichen Lauf aktualisiert werden. In Pull Requests stehen die Ergebnisse als Workflow-Artefakt `screenshot-gallery` zum Herunterladen bereit; native Testergebnisse werden ebenfalls angehängt.
+The [GitHub workflow](.github/workflows/screenshots.yml) captures screenshots when app code, translations, documentation, or screenshot scripts change on `main` or in a pull request. You can also start it from **Actions → App screenshots → Run workflow**. On the default branch, original PNGs and small JPEG previews are published directly from the build artifact to [GitHub Pages](https://leongeorgi.github.io/currency/). The workflow has no Git write permission and creates no commits. The README uses stable external URLs whose contents update after each successful deployment. Pull requests provide a downloadable `screenshot-gallery` workflow artifact; native test results are attached as well.
 
-Die Aufnahmen zeigen Übersicht, Verlauf, Bearbeiten und die Übersicht im Dunkelmodus für Deutsch, Englisch, Japanisch, Spanisch und Französisch auf einem iPhone 17. Alle erzeugten Dateien liegen ausschließlich im ignorierten Verzeichnis `build/Screenshots/Site/`: `screenshots/originals/` enthält die unveränderten Simulator-PNGs, `screenshots/previews/` die tatsächlich auf 320 Pixel Breite verkleinerten JPEGs. Die README bindet ausschließlich acht dieser kleinen Vorschauen ein und verlinkt alle zwanzig Originale. Die veröffentlichte Datei [screenshots/manifest.json](https://leongeorgi.github.io/currency/screenshots/manifest.json) enthält Auflösung und Dateigröße jeder Aufnahme. Eine Galerie aller Aufnahmen steht auf der Pages-Startseite.
+The gallery covers the overview, history, editing, and dark mode overview in all five languages on an iPhone 17. English screenshots lead the README, followed by an overview in each other language. Generated files live only in the ignored `build/Screenshots/Site/` directory: `screenshots/originals/` holds unchanged simulator PNGs, and `screenshots/previews/` holds JPEGs resized to 320 pixels wide. The README embeds eight small previews and links to all twenty originals. The published [screenshots/manifest.json](https://leongeorgi.github.io/currency/screenshots/manifest.json) records image dimensions and file sizes. The Pages home page displays the complete gallery.
 
-Lokal mit Xcode 26 oder neuer ausführen:
+Run locally with Xcode 26 or later:
 
 ```sh
 bash scripts/screenshots.sh
 ```
 
-Das Skript erstellt und entfernt einen eigenen Simulator, verwendet ausschließlich feste Beispieldaten und verändert keine gespeicherten Beträge, Währungslisten oder Widget-Einstellungen der normalen App. Der Screenshot-Modus ist nur in Debug-Builds verfügbar. Die Zeit- und Datenangaben sind absichtlich fest, damit sich Screenshots nur bei relevanten Änderungen unterscheiden. System-Mitteilungsbanner werden vor Aufnahmen entfernt und vor sowie nach der Aufnahme geprüft; verdeckte Bilder werden nicht veröffentlicht. Die UI-Tests liegen im separaten Scheme **Screenshots**; die normalen Unit-Tests bleiben im Scheme **Currency**.
+The script creates and removes its own simulator, uses fixed sample data, and leaves the normal app's saved amounts, currency lists, and widget settings untouched. Screenshot mode is available only in debug builds. Dates and times are fixed so images change only when relevant content changes. System notification banners are dismissed and checked both before and after each capture; obscured images are not published. UI tests use the separate **Screenshots** scheme; unit tests remain in the **Currency** scheme.
 
-GitHub Pages muss einmalig unter **Settings → Pages → Source → GitHub Actions** aktiviert sein; für dieses Repository ist das eingerichtet. Der Publish-Job nutzt ausschließlich das eingebaute `GITHUB_TOKEN` mit `pages: write`, `id-token: write` und lesendem Repository-Zugriff; zusätzliche Secrets oder ein separater Git-Branch sind nicht nötig. Pull Requests veröffentlichen keine öffentliche Galerie. Läufe für überholte Commits überspringen die Veröffentlichung.
+GitHub Pages must be enabled once under **Settings → Pages → Source → GitHub Actions**; this repository is already configured. The publish job uses the built-in `GITHUB_TOKEN` with `pages: write`, `id-token: write`, and read-only repository access. No additional secrets or separate Git branch are required. Pull requests do not publish a public gallery, and runs for outdated commits skip deployment.
 
-Die README-Links werden nur bei einer Änderung der Galerie-Struktur oder des Hosts explizit mit `python3 scripts/publish-screenshots.py --update-readme` neu erzeugt. Für einen Fork mit eigener Pages-Adresse `--base-url https://OWNER.github.io/REPOSITORY` ergänzen. Bereits früher committete Screenshots bleiben in älteren Git-Commits enthalten; die neue Pipeline fügt keine weiteren Bildversionen hinzu.
+Regenerate the README links explicitly only when the gallery structure or host changes:
 
-### Bisherige Prüfungen
+```sh
+python3 scripts/publish-screenshots.py --update-readme
+```
 
-Build und fünfzehn Unit-Tests wurden mit Xcode 27 auf einem iPhone-17-Simulator mit iOS 27 erfolgreich ausgeführt. Deployment Target ist iOS 26. Ein Lauf auf einem iOS-26-Gerät ist noch ausstehend.
+For a fork with its own Pages address, add `--base-url https://OWNER.github.io/REPOSITORY`. Previously committed screenshots remain in older Git commits; the current pipeline adds no further image versions to the repository.
 
-Die Oberflächen auf Englisch, Japanisch, Spanisch und Französisch wurden im Simulator geprüft, einschließlich lokaler Zahlen-, Datums- und Währungsformate. Alle vom Compiler extrahierten Oberflächentexte sind übersetzt; Platzhalter und die tatsächlich kompilierten Sprachressourcen wurden für alle fünf Sprachen in App und Widget geprüft.
+### Validation performed
 
-In Xcode mit **⌘U** testen. Die Unit-Tests laufen gegen lokale HTTP-Fixtures und benötigen keine Netzwerkverbindung. Echte Frankfurter-Abrufe, Mehrfachauswahl, Wechsel der Hauptwährung, Betragserhalt nach einem App-Neustart, die separate Verlaufsansicht, Zehnjahresverlauf, Flaggenanzeige, Sortieren und Löschen, Reihenfolge nach einem App-Neustart, Synchronisierung der ersten drei Vergleiche sowie der Aufruf der App aus einem Widget ohne Verlust der übrigen Vergleiche wurden zusätzlich im Simulator geprüft. Die Startansicht verwendet native SwiftUI-Layouts und Buttons mit semantischen Systemfarben und unterstützt Hell- und Dunkelmodus sowie große Systemschrift.
+The app build and fifteen unit tests have passed with Xcode 27 on an iPhone 17 simulator running iOS 27. The deployment target is iOS 26; testing on a physical iOS 26 device is still pending.
+
+All five localizations have been checked in the simulator, including number, date, and currency formatting. Compiler-extracted interface text, placeholders, and compiled language resources have been checked in both the app and widget.
+
+Use **⌘U** in Xcode to run the unit tests. They use local HTTP fixtures and require no network connection. Additional simulator checks cover live Frankfurter requests, multiple comparison currencies, changing the base currency, amount persistence after restarting the app, history navigation, ten-year charts, the saved zero baseline setting, flags, reordering and deletion, order persistence, synchronization of the first three widget currencies, and opening the app from a widget without losing other comparisons. Light and dark appearances have been inspected. The interface uses native SwiftUI layouts and buttons, semantic system backgrounds, and Dynamic Type.
