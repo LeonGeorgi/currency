@@ -64,7 +64,7 @@ Nach Änderungen in der App wird das Widget zur Aktualisierung aufgefordert. Ein
 
 - `Currency/`: SwiftUI-Oberfläche und beobachtbares Zustandsmodell.
 - `Currency/AppIcon.icon`: Mehrschichtiges, direkt in Xcode eingebundenes Icon-Composer-Dokument mit getrennten Münz- und Symbolebenen. Licht, Material und die Systemdarstellungen werden von Apples Icon Composer gerendert; der Dunkelmodus hat eine eigene kontrastreiche Symbolfüllung.
-- `Design/Icon/`: SVG-Quelldateien und ein Swift-Skript zum erneuten Erzeugen der Vektorpfade. Zum Aktualisieren `swift Design/Icon/generate.swift Currency/AppIcon.icon/Assets` ausführen, während das Dokument im Icon Composer geschlossen ist. Beide Währungszeichen sind auf die Mitte ihrer Münze ausgerichtet.
+- `Design/Icon/`: SVG-Quelldateien und ein Swift-Skript zum erneuten Erzeugen der Vektorpfade. Zum Aktualisieren `swift Design/Icon/generate.swift Currency/AppIcon.icon/Assets` ausführen, während das Dokument im Icon Composer geschlossen ist. Das Euro-Zeichen ist optisch anhand seines runden Bogens auf die Münzmitte ausgerichtet; die Korrektur ist im Generator hinterlegt.
 - `Shared/`: API-Client, Modelle und Cache, gemeinsam von App und Widget kompiliert.
 - `CurrencyWidget/`: Statisches Widget mit gemeinsamer App-Auswahl und Timeline.
 - `CurrencyTests/`: HTTP-Fixtures, Decoding, Zeitreihenanfragen, Fehlerbehandlung, Cache und Widget-Deep-Links.
