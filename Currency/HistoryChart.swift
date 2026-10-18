@@ -5,6 +5,7 @@ struct HistoryChart: View {
     let rates: [Rate]
     let quote: String
     let period: RatePeriod
+    let startsAtZero: Bool
     @State private var selectedDate: Date?
 
     private var selected: Rate? {
@@ -15,7 +16,8 @@ struct HistoryChart: View {
         let low = rates.map(\.rate).min() ?? 0
         let high = rates.map(\.rate).max() ?? 1
         let padding = max((high - low) * 0.15, abs(low) * 0.001)
-        return max(0, low - padding)...(high + padding)
+        let lowerBound = startsAtZero ? 0 : max(0, low - padding)
+        return lowerBound...(high + padding)
     }
     private var change: Double? {
         guard let first = rates.first, let last = rates.last, rates.count > 1 else { return nil }
@@ -72,6 +74,7 @@ struct CurrencyHistoryView: View {
     let latest: Rate?
     @State private var store = ExchangeStore()
     @State private var period: RatePeriod = .month
+    @AppStorage("chartStartsAtZero") private var chartStartsAtZero = false
 
     var body: some View {
         Form {
@@ -96,7 +99,7 @@ struct CurrencyHistoryView: View {
                 .pickerStyle(.segmented)
                 .listRowSeparator(.hidden)
                 if !store.history.isEmpty {
-                    HistoryChart(rates: store.history, quote: pair.quote, period: period)
+                    HistoryChart(rates: store.history, quote: pair.quote, period: period, startsAtZero: chartStartsAtZero)
                         .listRowSeparator(.hidden)
                 } else if store.loadingHistory {
                     ProgressView().frame(maxWidth: .infinity, minHeight: 240)
@@ -107,6 +110,8 @@ struct CurrencyHistoryView: View {
                     Label(error, systemImage: "exclamationmark.triangle").font(.footnote).foregroundStyle(.secondary)
                     Button("Erneut versuchen") { Task { await load() } }
                 }
+                Toggle("Bei Null beginnen", isOn: $chartStartsAtZero)
+                    .accessibilityIdentifier("chart-starts-at-zero")
             } header: {
                 Text("Verlauf")
             } footer: {
