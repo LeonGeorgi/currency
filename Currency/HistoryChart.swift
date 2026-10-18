@@ -91,7 +91,6 @@ struct CurrencyHistoryView: View {
                 } footer: {
                     Text("Stand: \(latest.date.formatted(APIDate.displayStyle))")
                 }
-                .listRowBackground(Color("CardBackground"))
             }
             Section {
                 Picker("Zeitraum", selection: $period) {
@@ -119,10 +118,7 @@ struct CurrencyHistoryView: View {
                 Link("Tägliche Referenzkurse · Frankfurter", destination: URL(string: "https://frankfurter.dev")!)
                     .font(.caption).foregroundStyle(.secondary)
             }
-            .listRowBackground(Color("CardBackground"))
         }
-        .scrollContentBackground(.hidden)
-        .background(Color("AppBackground"))
         .navigationTitle(Text(verbatim: "\(CurrencyDisplay.flag(for: pair.base)) \(pair.base) → \(CurrencyDisplay.flag(for: pair.quote)) \(pair.quote)"))
         .navigationBarTitleDisplayMode(.inline)
         .task(id: period) { await load() }

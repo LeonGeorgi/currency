@@ -78,7 +78,7 @@ struct ExchangeWidgetView: View {
             }
         }
         .tint(Color("AccentColor"))
-        .containerBackground(Color("AppBackground"), for: .widget)
+        .containerBackground(Color(uiColor: .systemGroupedBackground), for: .widget)
         .widgetURL(URL(string: "currency://open")!)
     }
 
@@ -89,7 +89,6 @@ struct ExchangeWidgetView: View {
                 .lineLimit(1)
             Text(CurrencyDisplay.amount(amount, code: entry.selection.base))
                 .font(.system(size: large ? 34 : 26, weight: .medium, design: .rounded))
-                .foregroundStyle(Color("AccentColor"))
                 .monospacedDigit().lineLimit(1).minimumScaleFactor(0.4)
         }
         .accessibilityElement(children: .ignore)
@@ -173,7 +172,7 @@ struct ExchangeWidgetView: View {
         }
         .padding(10)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .background(Color("CardBackground"), in: .rect(cornerRadius: 16))
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(quoteDescription(snapshot, amount: amount))
     }

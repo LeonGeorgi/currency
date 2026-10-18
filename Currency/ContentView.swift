@@ -98,7 +98,7 @@ struct ContentView: View {
             .scrollContentBackground(.hidden)
             .frame(maxWidth: 600)
             .frame(maxWidth: .infinity)
-            .background(Color("AppBackground"))
+            .background(Color(uiColor: .systemGroupedBackground))
             .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Währungen")
             .navigationBarTitleDisplayMode(.inline)
@@ -226,7 +226,7 @@ struct ContentView: View {
             }
         }
         .padding(18)
-        .background(Color("CardBackground"), in: .rect(cornerRadius: 24))
+        .background(Color(uiColor: .secondarySystemGroupedBackground), in: .rect(cornerRadius: 24))
     }
 
     private func comparisonContent(_ quote: String, snapshot: QuoteSnapshot?) -> some View {
@@ -344,10 +344,7 @@ struct ComparisonPicker: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityAddTraits(selected.contains(currency.code) ? [.isSelected] : [])
-                .listRowBackground(Color("CardBackground"))
             }
-            .scrollContentBackground(.hidden)
-            .background(Color("AppBackground"))
             .overlay { if filtered.isEmpty { ContentUnavailableView.search(text: search) } }
             .searchable(text: $search, prompt: "Name oder Währungscode")
             .navigationTitle("Währungen")
@@ -388,10 +385,7 @@ struct CurrencyPicker: View {
                         if currency.code == selection { Image(systemName: "checkmark") }
                     }
                 }
-                .listRowBackground(Color("CardBackground"))
             }
-            .scrollContentBackground(.hidden)
-            .background(Color("AppBackground"))
             .overlay { if filtered.isEmpty { ContentUnavailableView.search(text: search) } }
             .searchable(text: $search, prompt: "Name oder Währungscode")
             .navigationTitle("Währung auswählen")
@@ -411,19 +405,14 @@ private struct InfoView: View {
                     Link("Frankfurter API", destination: URL(string: "https://frankfurter.dev")!)
                     Text("Die Kurse dienen der Orientierung. Tatsächliche Umrechnungskurse können durch Gebühren und Aufschläge abweichen.").foregroundStyle(.secondary)
                 }
-                .listRowBackground(Color("CardBackground"))
                 Section("Homescreen-Widget") {
                     Text("Halte den Homescreen gedrückt und wähle Bearbeiten → Widget hinzufügen → Devisen. Das Widget übernimmt Betrag, Hauptwährung und die ersten drei Vergleichswährungen aus der App.")
                     Text("Über Bearbeiten kannst du die Vergleichswährungen verschieben und löschen. Ihre Reihenfolge bestimmt die Anzeige im Widget. Tippe auf das Widget, um die App zu öffnen. iOS bestimmt den genauen Zeitpunkt der Aktualisierung.")
                 }
-                .listRowBackground(Color("CardBackground"))
                 Section("Offline") {
                     Text("Zuletzt geladene Kurse und Zeitreihen bleiben auf diesem Gerät gespeichert. Schlägt eine Aktualisierung fehl, werden gespeicherte Daten entsprechend gekennzeichnet.")
                 }
-                .listRowBackground(Color("CardBackground"))
             }
-            .scrollContentBackground(.hidden)
-            .background(Color("AppBackground"))
             .navigationTitle("Über Devisen")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fertig") { dismiss() } } }
