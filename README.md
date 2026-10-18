@@ -71,6 +71,10 @@ Changes in the app request a widget refresh. Amount edits are briefly debounced 
 - `CurrencyTests/`: HTTP fixtures and tests for decoding, history requests, error handling, caching, and widget deep links.
 - `CurrencyScreenshotTests/`: Native UI tests for the automated screenshot gallery.
 
+## Experiments
+
+The [mental currency conversion experiment](docs/mental-math.md) evaluates automatically generated rules for mental arithmetic across 870 currency conversions. It includes measured errors, the search method, and a link to an offline interactive prototype on a separate branch. This is exploratory work and is not part of the app UI.
+
 ## Testing
 
 ### Automated screenshots
