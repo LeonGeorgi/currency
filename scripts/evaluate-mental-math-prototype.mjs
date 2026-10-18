@@ -12,7 +12,7 @@ const math=context.math;
 const fixture=JSON.parse(html.match(/<script id="rate-fixture" type="application\/json">([\s\S]*?)<\/script>/)[1]);
 const rates={EUR:1,...fixture.rates};
 const result={source:'https://api.frankfurter.dev/v1/latest?base=EUR',date:fixture.date,stats:math.stats,examples:[],benchmarks:[]};
-const summarize=rule=>rule?{rule:math.explain(rule),factor:rule.factor,errorPercent:rule.error*100,effort:rule.effort,steps:rule.steps.length,mentalSteps:rule.mentalSteps}:null;
+const summarize=rule=>rule?{rule:math.explain(rule),factor:rule.factor,errorPercent:rule.error*100,effort:rule.effort,primitiveSteps:rule.primitiveSteps,retained:rule.retained,steps:rule.steps.length,mentalSteps:rule.mentalSteps}:null;
 const coins=['JPY','USD','GBP','CHF','CNY','INR','KRW','SEK','THB','TRY','IDR','AUD'];
 for(const quote of coins)for(const [from,to,amount] of [['EUR',quote,20],[quote,'EUR',1000]]){
   const rate=rates[to]/rates[from];
@@ -22,27 +22,27 @@ const currencies=Object.keys(rates);
 const pairs=[];
 for(const from of currencies)for(const to of currencies)if(from!==to)pairs.push({from,to,rate:rates[to]/rates[from]});
 const start=performance.now();
-for(const tolerance of [.01,.02,.03])for(const maxMentalSteps of [1,2,3]){
-  const chosen=pairs.map(pair=>math.choose(pair.rate,tolerance,maxMentalSteps));
+for(const tolerance of [.01,.02,.03,.05])for(const maxPrimitiveSteps of [2,3,4,5,6]){
+  const chosen=pairs.map(pair=>math.choose(pair.rate,tolerance,3,maxPrimitiveSteps));
   const found=chosen.filter(Boolean);
   const errors=found.map(rule=>Math.abs(rule.error)*100).sort((a,b)=>a-b);
-  result.benchmarks.push({tolerancePercent:tolerance*100,maxMentalSteps,pairs:pairs.length,found:found.length,coveragePercent:found.length/pairs.length*100,medianErrorPercent:errors[Math.floor(errors.length/2)],worstErrorPercent:errors.at(-1),withinEffort3:found.filter(rule=>rule.effort<=3).length,maxSteps:Math.max(...found.map(rule=>rule.steps.length))});
+  result.benchmarks.push({tolerancePercent:tolerance*100,maxPrimitiveSteps,pairs:pairs.length,found:found.length,coveragePercent:found.length/pairs.length*100,medianErrorPercent:errors[Math.floor(errors.length/2)]??null,worstErrorPercent:errors.at(-1)??null,maxDisplayedSteps:found.length?Math.max(...found.map(rule=>rule.steps.length)):0});
 }
 result.stats.allPairsSweepMs=performance.now()-start;
 result.defaultRules=pairs.map(pair=>({...pair,...summarize(math.recommend(pair.rate,.02))}));
 result.defaultSummary={
   found:result.defaultRules.filter(rule=>rule.rule).length,
   twoOperations:result.defaultRules.filter(rule=>rule.mentalSteps<=2).length,
-  hardest:result.defaultRules.toSorted((a,b)=>b.effort-a.effort).slice(0,10),
+  hardest:result.defaultRules.filter(rule=>rule.rule).toSorted((a,b)=>b.effort-a.effort).slice(0,10),
 };
 result.adaptiveRules=pairs.map(pair=>({...pair,...summarize(math.adaptive(pair.rate,.02))}));
-result.adaptiveSummary={found:result.adaptiveRules.filter(rule=>rule.rule).length,
-    within2Percent:result.adaptiveRules.filter(rule=>Math.abs(rule.errorPercent)<=2).length,
-    within3Percent:result.adaptiveRules.filter(rule=>Math.abs(rule.errorPercent)<=3).length,
-    maxErrorPercent:Math.max(...result.adaptiveRules.map(rule=>Math.abs(rule.errorPercent))),
-    maxEffort:Math.max(...result.adaptiveRules.map(rule=>rule.effort)),
-    twoOperations:result.adaptiveRules.filter(rule=>rule.mentalSteps<=2).length,
-    medianErrorPercent:result.adaptiveRules.map(rule=>Math.abs(rule.errorPercent)).sort((a,b)=>a-b)[Math.floor(pairs.length/2)],
+const adaptiveFound=result.adaptiveRules.filter(rule=>rule.rule);
+result.adaptiveSummary={found:adaptiveFound.length,missing:pairs.length-adaptiveFound.length,
+    within2Percent:adaptiveFound.filter(rule=>Math.abs(rule.errorPercent)<=2).length,
+    within3Percent:adaptiveFound.filter(rule=>Math.abs(rule.errorPercent)<=3).length,
+    maxErrorPercent:Math.max(...adaptiveFound.map(rule=>Math.abs(rule.errorPercent))),
+    maxPrimitiveSteps:Math.max(...adaptiveFound.map(rule=>rule.primitiveSteps)),
+    medianErrorPercent:adaptiveFound.map(rule=>Math.abs(rule.errorPercent)).sort((a,b)=>a-b)[Math.floor(adaptiveFound.length/2)],
 };
 result.synthetic=[];
 for(const rate of [1,180,1/180,1.125,Math.PI,1e-6,1e6]){
@@ -75,6 +75,6 @@ for(const tolerance of [.01,.03]){
 const out=path.join(root,'build/MentalMath');fs.mkdirSync(out,{recursive:true});
 fs.writeFileSync(path.join(out,'evaluation.json'),JSON.stringify(result,null,2)+'\n');
 console.log('Catalogue:',result.stats,'\nRate date:',fixture.date,'Currencies:',currencies.length,'Directed pairs:',pairs.length);
-console.table(result.examples.map(row=>({pair:`${row.from}→${row.to}`,rate:row.rate.toPrecision(7),easy:row.easy?.rule,error:row.easy?.errorPercent.toFixed(3)+'%',precise:row.accurate?.rule,preciseError:row.accurate?.errorPercent.toFixed(3)+'%'})));
+console.table(result.examples.map(row=>({pair:`${row.from}→${row.to}`,rate:row.rate.toPrecision(7),easy:row.easy?.rule,error:row.easy?row.easy.errorPercent.toFixed(3)+'%':'—',precise:row.accurate?.rule,preciseError:row.accurate?row.accurate.errorPercent.toFixed(3)+'%':'—'})));
 console.table(result.benchmarks);console.table(result.grid);
 console.log('Full results: build/MentalMath/evaluation.json');

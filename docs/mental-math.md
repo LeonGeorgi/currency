@@ -1,99 +1,80 @@
-# Mental currency conversion rules: experiment
+# Mental currency conversion rules: conservative revision
 
-A bounded search over a small arithmetic vocabulary produces useful numerical approximations. This experiment does not add a feature to the iOS app. The remaining uncertainty is whether people agree with the difficulty ranking.
+This experiment now distinguishes numerical approximation coverage from human usability. The first version found a short expression for every sampled conversion by treating eighths, sixths, and other derived operations as cheap. User feedback rejected that definition of “easy”. Its earlier 100% numerical coverage is **not evidence of 100% usability**.
 
-## Recommendation
+## Evidence and design decision
 
-Target **2% relative error**, allow **up to 3%** when that avoids substantially harder arithmetic, and always display the actual signed error. Prefer at most two arithmetic operations plus one decimal shift. Offer an optional tighter 1% rule only when it is useful; do not replace an easy rule with a difficult formula merely because it is more precise.
+The [primary research note](mental-arithmetic-evidence.md) reviews five experimental papers on arithmetic strategies, operand size, working memory, carrying, familiarity, and individual differences. These support considering the work behind an instruction and the amount being processed. They do not supply a calibrated latency table for the currency rules. The changes below are conservative engineering choices informed by those findings and the user’s explicit preferences.
 
-The adaptive policy found a rule for every one of the 870 directed conversions in this snapshot, always with at most two arithmetic operations plus a decimal shift. Of these, 756 (86.9%) stayed within 2%; all stayed within 3%. Median absolute error was about 1.10%. These results describe the selected dataset and operation vocabulary, not a guarantee for arbitrary future exchange rates.
+- Exclude sixths, eighths, division by integers 3–9, and 12.5% corrections from the default vocabulary.
+- Allow doubling, halving, ×3, ×5, and decimal shifts. Allow percentage corrections derived from halves and tenths: 5%, 10%, 15%, 20%, 25%, and 50%.
+- Count the work inside each correction. Subtracting 10% needs finding a tenth and subtracting it. Subtracting 25% needs two halvings and subtraction. A 15% correction needs finding 10%, halving that share, combining the shares, and applying the correction. It is not one elementary action.
+- Keep an explicit estimate of how many values the described method retains. Triple is represented as doubling plus the original; ×5 as halving plus a decimal shift. These are specified strategies, not claims that everyone uses them or that every action takes equal time.
+- Limit the default to four estimated elementary actions, including a possible decimal shift, and at most one percentage correction. Do not label three consecutive halvings as one cheap division; the vocabulary also limits standalone halvings to two per rule.
+- Target 2% relative error, allowing up to 3% only when it saves at least one estimated action. Within a work budget, prefer fewer retained values, then lower error.
+- If no rule meets the error and effort limits, return **no simple rule**. Numerical coverage is allowed to fall rather than silently introducing unfamiliar arithmetic.
 
-## Source and reproducibility
+## Reproducibility
 
-- Reference date: **2026-10-16**. Retrieved during this experiment on 2026-10-18.
-- Source: [Frankfurter latest EUR rates](https://api.frankfurter.dev/v1/latest?base=EUR). The v2 endpoint returned HTTP 403 in this research environment; the accessible v1 endpoint supplied the dated test snapshot. Production app networking is unchanged.
-- 29 foreign currency quotes plus EUR itself: **30 currencies, 870 ordered pairs**. Reverse rates and cross-rates are derived from the same EUR snapshot. These are 870 conversions, not 870 independent observations.
-- [Prototype branch](https://github.com/LeonGeorgi/currency/tree/codex/mental-math-prototype): `Shared/MentalMathPrototype.html` is a standalone, offline HTML file with the pure search module and the full snapshot embedded. Open it directly in a browser.
-- On that branch, run `node scripts/evaluate-mental-math-prototype.mjs` to repeat the batch evaluation. It writes `build/MentalMath/evaluation.json`; generated output remains outside Git.
+- Reference date: **2026-10-16**, using the same [Frankfurter EUR snapshot](https://api.frankfurter.dev/v1/latest?base=EUR) as the initial experiment. This revision deliberately reuses the dated snapshot to isolate the model change.
+- 29 foreign quotes plus EUR: **30 currencies and 870 directed conversions**. Cross-rates are derived from a single EUR snapshot and are not independent market observations.
+- The [experiment branch](https://github.com/LeonGeorgi/currency/tree/codex/mental-math-prototype) contains the standalone offline `Shared/MentalMathPrototype.html` and `scripts/evaluate-mental-math-prototype.mjs`.
+- Run `node scripts/evaluate-mental-math-prototype.mjs` on that branch. Results are written to ignored `build/MentalMath/evaluation.json`. The HTML includes the same pure module and the full source snapshot. No production app feature or telemetry is introduced.
 
-## How the algorithm works
+## Results with the four-action budget
 
-1. Enumerate chains of up to three arithmetic operations. Allowed operations are multiplication/division by integers 2–9; adding/subtracting 5%, 10%, 12.5%, 20%, 25%, or 50%; and adding/subtracting one third or one sixth. Permit at most one percentage or fractional adjustment in each chain.
-2. Allow one decimal shift by a power of ten, separately from those operations. The prototype searches powers from 10^-8 through 10^8 and retains positive factors from 10^-9 through 10^9.
-3. Represent factors as reduced integer fractions and retain low-cost alternatives with different step counts. This prevents losing a short formula merely because a longer equivalent one has a lower effort score.
-4. Give operations a fixed difficulty cost: halving is cheap, dividing by 7 or 9 is expensive, and percentage adjustments include the extra work of finding and adding/subtracting a share. Decimal shifts are cheap. These weights are heuristic, not measured cognitive costs.
-5. Sort the catalogue by multiplier. For a rate r and allowed relative error e, search only factors in [r × (1 − e), r × (1 + e)]. Choose the lowest effort within that interval, breaking ties by error. Try two-operation rules before allowing a third.
-6. Order the displayed instructions to postpone recurring division and avoid unnecessarily large intermediate values. Every percentage or fraction refers to the current result, not the initial amount.
-7. For the recommended rule, compare a strict 2% candidate with a 3% candidate. Use the latter only if it saves more than 0.8 effort points. This avoids a sharp difficulty jump when an easy rule misses the preferred threshold by a tiny amount. The 1% option remains strict.
+| Strict error limit | Rules found | Coverage | Median absolute error among covered pairs |
+| ---: | ---: | ---: | ---: |
+| 1% | 199/870 | 22.9% | 0.465% |
+| 2% | 378/870 | 43.4% | 0.955% |
+| 3% | 517/870 | 59.4% | 1.315% |
+| 5% | 710/870 | 81.6% | 2.233% |
 
-For factor f and reference rate r, signed error is `(f / r − 1) × 100%`. As every allowed operation is multiplicative, the relative error is independent of the amount, provided intermediate results are not rounded. A percentage operation is one grammar operation, even though a person may use several mental actions to carry it out.
+The adaptive 2%/3% policy covers **517/870** directions, with **353** explicit gaps. Of the covered directions, 374 stay within 2%. Median absolute error among covered directions is 1.31%. These are mathematical approximation errors, not observed human error rates.
 
-## Results for selected conversions
+## Selected generated rules
 
-All rules below were generated by the adaptive 2%/3% policy. Positive error means the result is too high; negative error means it is too low. Apply instructions from left to right. `+⅟3` means add one third of the current result; `−⅟6` means subtract one sixth. Adding 12.5% means adding one eighth.
+Apply instructions left to right; every correction refers to the current result. Positive error means too high, negative error too low. A compact percentage label must be accompanied by its underlying procedure in the demo.
 
-| Direction | Reference rate | Generated rule | Signed error |
-| --- | ---: | --- | ---: |
-| EUR → JPY | 177.82 | ×2 → ×100 → −10% | +1.226% |
-| JPY → EUR | 0.00562366438 | ÷100 → ÷2 → +12.5% | +0.024% |
-| EUR → USD | 1.1253 | +12.5% | -0.027% |
-| USD → EUR | 0.888651915 | −10% | +1.277% |
-| EUR → GBP | 0.84385 | −⅟6 | -1.246% |
-| GBP → EUR | 1.18504474 | +20% | +1.262% |
-| EUR → CHF | 0.9272 | −10% | -2.934% |
-| CHF → EUR | 1.07851596 | +10% | +1.992% |
-| EUR → CNY | 7.524 | ×10 → −25% | -0.319% |
-| CNY → EUR | 0.132908028 | ÷10 → +⅟3 | +0.320% |
-| EUR → INR | 106.864 | ×100 → +5% | -1.744% |
-| INR → EUR | 0.00935768828 | ÷100 → −5% | +1.521% |
-| EUR → KRW | 1499.01 | ×1,000 → +50% | +0.066% |
-| KRW → EUR | 0.000667106957 | ÷1,000 → −⅟3 | -0.066% |
-| EUR → SEK | 11.145 | ×10 → +10% | -1.301% |
-| SEK → EUR | 0.0897263347 | ÷10 → −10% | +0.305% |
-| EUR → THB | 37.602 | ×100 → ÷2 → −25% | -0.271% |
-| THB → EUR | 0.0265943301 | ÷100 → ×3 → −10% | +1.525% |
-| EUR → TRY | 55.7328 | ×100 → ÷2 → +10% | -1.315% |
-| TRY → EUR | 0.0179427554 | ÷100 → ×2 → −10% | +0.319% |
-| EUR → IDR | 20290.28 | ×2 → ×10,000 | -1.431% |
-| IDR → EUR | 4.92846821e-05 | ÷10,000 → ÷2 | +1.451% |
-| EUR → AUD | 1.6171 | ×2 → −20% | -1.057% |
-| AUD → EUR | 0.618390947 | ÷2 → +25% | +1.069% |
+| Direction | Reference rate | Conservative rule | Signed error | Estimated actions |
+| --- | ---: | --- | ---: | ---: |
+| EUR → JPY | 177.82 | ×2 → ×100 → −10% | +1.226% | 4 |
+| JPY → EUR | 0.00562366438 | ÷100 → halve → +10% | -2.199% | 4 |
+| EUR → USD | 1.1253 | +10% | -2.248% | 2 |
+| USD → EUR | 0.888651915 | −10% | +1.277% | 2 |
+| EUR → GBP | 0.84385 | −15% | +0.729% | 4 |
+| GBP → EUR | 1.18504474 | +20% | +1.262% | 3 |
+| EUR → CHF | 0.9272 | −10% | -2.934% | 2 |
+| CHF → EUR | 1.07851596 | +10% | +1.992% | 2 |
+| EUR → CNY | 7.524 | ×5 → +50% | -0.319% | 4 |
+| CNY → EUR | 0.132908028 | No short rule within the limits | — | — |
+| EUR → INR | 106.864 | ×100 → +10% | +2.935% | 3 |
+| INR → EUR | 0.00935768828 | ÷100 → −5% | +1.521% | 4 |
+| EUR → KRW | 1499.01 | ×1,000 → +50% | +0.066% | 3 |
+| KRW → EUR | 0.000667106957 | No short rule within the limits | — | — |
+| EUR → SEK | 11.145 | ×10 → +10% | -1.301% | 3 |
+| SEK → EUR | 0.0897263347 | ÷10 → −10% | +0.305% | 3 |
+| EUR → THB | 37.602 | No short rule within the limits | — | — |
+| THB → EUR | 0.0265943301 | No short rule within the limits | — | — |
+| EUR → TRY | 55.7328 | ×100 → halve → +10% | -1.315% | 4 |
+| TRY → EUR | 0.0179427554 | ÷100 → ×2 → −10% | +0.319% | 4 |
+| EUR → IDR | 20290.28 | ×2 → ×10,000 | -1.431% | 2 |
+| IDR → EUR | 4.92846821e-05 | ÷10,000 → halve | +1.451% | 2 |
+| EUR → AUD | 1.6171 | ×2 → −20% | -1.057% | 4 |
+| AUD → EUR | 0.618390947 | halve → +25% | +1.069% | 4 |
 
-## Strict thresholds and search depth
+For example, EUR → USD now uses +10% (−2.248%), and JPY → EUR uses `÷100 → halve → +10%` (−2.199%). The previous +12.5% answers were numerically better but did not meet the user’s idea of a practical shortcut. EUR → GBP uses −15% (+0.729%), which is explicitly counted as four actions with three retained values, not treated as an effortless single operation.
 
-These are separate strict searches without adaptive relaxation. The operation count excludes one optional decimal shift.
+## What the numerical checks do and do not establish
 
-| Error limit | Arithmetic operations allowed | Pairs covered | Coverage | Median absolute error |
-| ---: | ---: | ---: | ---: | ---: |
-| 1% | 1 | 217/870 | 24.9% | 0.457% |
-| 1% | 2 | 758/870 | 87.1% | 0.491% |
-| 1% | 3 | 870/870 | 100.0% | 0.457% |
-| 2% | 1 | 390/870 | 44.8% | 0.939% |
-| 2% | 2 | 861/870 | 99.0% | 0.971% |
-| 2% | 3 | 870/870 | 100.0% | 0.987% |
-| 3% | 1 | 506/870 | 58.2% | 1.262% |
-| 3% | 2 | 870/870 | 100.0% | 1.277% |
-| 3% | 3 | 870/870 | 100.0% | 1.277% |
+- The hypothetical 180 JPY/EUR example remains exact with `×2 → ×100 → −10%`.
+- Generated instructions are checked by executing their steps for amounts 0, 0.01, 1, 5, 19.99, 100, and 9,999 on every covered 3% conversion. The relative discrepancy from the derived factor is approximately 2.2 × 10^-16, consistent with floating-point rounding.
+- The runner also samples 1,001 logarithmically spaced rates from 10^-6 to 10^6 and reports gaps. It does not silently enlarge the default operation budget.
+- Approximation error is amount-independent without intermediate rounding. Human difficulty is **not** amount-independent: operands, carries, retained intermediate values and familiarity matter. The present prototype only shows the specific amount’s intermediate values; it does not yet have a scientifically calibrated amount-sensitive difficulty score.
+- Four elementary actions is a product limit, not an experimentally established boundary. Counts such as “double once” operate at the instruction level; multidigit carries can add further work.
 
-A strict 2% threshold covers 861 of 870 pairs (98.97%) with two arithmetic operations and all 870 with three. A strict 1% threshold covers 758 pairs (87.13%) with two operations and all 870 with three, but the additional accuracy can produce awkward rules. For EUR → JPY, for example, `×1,000 → +25% → ÷7` is more accurate than `×2 → ×100 → −10%`, but is harder to use.
+## Next validation
 
-## Why the error threshold should be flexible
+Compare complete instructions with target users using round prices and awkward values such as 19.99 and 87.50. Counterbalance the rule and amount order; record successful answers, time, abandonment, and perceived ease. Distinguish first use from practice. Use these observations to decide whether optional derived corrections such as 15% and 25% are acceptable and to calibrate any numerical difficulty weights. The studies in the evidence note motivate this procedure; they do not replace it.
 
-JPY → HUF illustrates the cliff: its reference rate is about 2.04184. Simply doubling gives −2.049% error. A strict 2% search rejects that tiny miss and instead returns `×100 → ÷7 → ÷7`. The adaptive rule correctly favors doubling and clearly reports its slightly larger error.
-
-## Additional numerical checks
-
-- The hypothetical 180 JPY/EUR example reproduces `×2 → ×100 → −10%` exactly.
-- The reverse direction is searched independently. At the reference JPY → EUR rate, `÷100 → ÷2 → +12.5%` is only +0.02375% high. Reversing the original −10% operation by adding 10% is not an algebraic inverse.
-- Executed each selected 3% rule for amounts 0, 0.01, 1, 5, 19.99, 100, and 9,999, for all 870 directions. The maximum relative difference between step execution and multiplication by the derived factor was about 2.2 × 10^-16, consistent with floating-point rounding.
-- Evaluated 1,001 logarithmically spaced synthetic rates from 10^-6 to 10^6. A rule existed for every sampled rate at both strict 1% and 3% thresholds, using up to three operations plus a decimal shift. This is sampled coverage, not a proof of coverage between grid points.
-- Extremely tight custom limits can return no rule. The demo shows this explicitly instead of silently violating a chosen threshold.
-- Checked the browser walkthroughs for the exact 180-yen example, independent reverse conversion, precision trade-offs, and large/small nominal rates.
-
-## Performance and limitations
-
-The prototype enumerated 16,098 short routes, yielding 8,406 distinct factors and 11,368 retained alternatives. Catalogue construction took about 590 ms in desktop Node.js during the recorded run. The nine full-pair threshold/depth sweeps took about 47 ms. These are local measurements, not iPhone performance claims.
-
-The numerical result is promising; the definition of “easy” still needs human evaluation. People differ in their comfort with eighths, sixths, and percentage adjustments. A consumer-facing implementation should express fractions in plain words, show a worked example for the entered amount, label the approximation and direction of error, and avoid early rounding. It should recompute when reference rates change and preferably retain the current rule while it remains acceptable, rather than changing a memorable rule after every tiny rate movement.
-
-The prototype stays on its experiment branch. The main branch records these findings only; it does not ship the HTML demo or alter the app UI.
+The prototype remains on its separate branch. The main branch contains the findings and scientific evidence only.

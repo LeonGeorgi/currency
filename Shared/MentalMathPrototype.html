@@ -18,34 +18,37 @@
 <div id="state" class="state"></div><div class="cards" id="rules"></div>
 </section>
 <section class="panel"><h2>Guided examples</h2><nav id="tabs" role="tablist"></nav><p id="scenario"></p><div id="steps"></div></section>
-<details class="panel"><summary>What the search considers</summary><p>Up to three mental operations, plus one decimal shift: multiply or divide by integers 2–9, or add/subtract 5%, 10%, 12.5%, 20%, 25%, 50%, one third, or one sixth. At most one percentage adjustment per rule. The default targets 2% error and tries two operations before allowing a third. It accepts up to 3% when the stricter rule costs over 0.8 extra effort points, to avoid a large jump in difficulty for a tiny accuracy gain. A fixed effort heuristic penalizes harder arithmetic. Within the chosen error bound, the least expensive rule wins; precision breaks ties. “More accurate” uses a 1% limit.</p><p>Every percentage or fractional adjustment applies to the result of the previous step. For example, adding 12.5% means dividing that result by 8 and adding that share. Avoid rounding between steps. Reverse conversions are searched independently. Error percentages assume arithmetic without intermediate rounding. The effort weights are a design hypothesis, not validated measurements of human performance.</p><p id="search-stats"></p></details>
+<details class="panel"><summary>What the search considers</summary><p>Only doubling, halving, ×3, ×5, decimal shifts and percentage corrections built from halves and tenths. No eighths, sixths, division by 3–9, or 12.5% shortcuts. At most one percentage correction. The default cap is four elementary actions, including decimal shifts. A 25% correction counts as two halvings plus addition/subtraction; a 15% correction has four actions and three retained values. Compact labels do not count as single effortless operations.</p><p>The default targets 2% error and may accept up to 3% when it saves an elementary action. No rule is returned when that limit cannot be met with the conservative vocabulary and work budget. Reverse conversions are searched independently. Percentages apply to the current result. Do not round between steps.</p><p>The vocabulary and work counts are engineering choices informed by arithmetic research, not measured human response times. Actual difficulty still depends on the amount, carries, practice and individual skill. <a href="https://github.com/LeonGeorgi/currency/blob/main/docs/mental-arithmetic-evidence.md">Read the primary research note</a> for studies and limits.</p><p id="search-stats"></p></details>
 <script id="mental-math-core">
 const MentalMath = (() => {
   const gcd = (a,b) => b ? gcd(b,a%b) : a;
   const fraction = (n,d) => {const g=gcd(n,d);return [n/g,d/g];};
-  const operations=[];
-  const multiplyCosts={2:.70,3:1.05,4:.95,5:1.00,6:1.50,7:1.80,8:1.50,9:1.80};
-  const divideCosts={2:.70,3:1.30,4:.95,5:1.00,6:1.65,7:2.10,8:1.50,9:2.10};
-  for(let n=2;n<=9;n++) {
-    operations.push({n,d:1,label:`Multiply by ${n}`,short:`×${n}`,cost:multiplyCosts[n],kind:'multiply'});
-    operations.push({n:1,d:n,label:`Divide by ${n}`,short:`÷${n}`,cost:divideCosts[n],kind:'divide'});
-  }
-  const percentageCosts={5:1.55,10:1.20,12.5:1.75,20:1.35,25:1.15,50:.90};
-  for(const p of [5,10,12.5,20,25,50]) for(const sign of [-1,1]) {
-    const [n,d]=fraction(1000+sign*p*10,1000);
-    operations.push({n,d,label:`${sign>0?'Add':'Subtract'} ${p}% of this result`,short:`${sign>0?'+':'−'}${p}%`,cost:percentageCosts[p],kind:'percent'});
-  }
-  for(const denominator of [3,6]) for(const sign of [-1,1]) {
-    operations.push({n:denominator+sign,d:denominator,label:`${sign>0?'Add':'Subtract'} one ${denominator===3?'third':'sixth'} of this result`,short:`${sign>0?'+':'−'}⅟${denominator}`,cost:denominator===3?1.60:1.85,kind:'percent'});
+  // Conservative product vocabulary, not a table of scientifically measured seconds.
+  // Work counts the described elementary transformations, not a compact formula label.
+  const operations=[
+    {n:2,d:1,label:'Double the result',short:'×2',cost:1,retained:1,kind:'multiply',recipe:'Double.'},
+    {n:1,d:2,label:'Halve the result',short:'halve',cost:1,retained:1,kind:'divide',recipe:'Halve.'},
+    {n:3,d:1,label:'Triple the result',short:'×3',cost:2,retained:2,kind:'multiply',recipe:'Double, then add the saved original result.'},
+    {n:5,d:1,label:'Multiply by 5',short:'×5',cost:2,retained:1,kind:'multiply',recipe:'Halve, then multiply by 10.'},
+  ];
+  const corrections={
+    5:{cost:3,retained:2,recipe:'Find 10%, halve that share, then apply it.'},
+    10:{cost:2,retained:2,recipe:'Find 10%, then apply that share.'},
+    15:{cost:4,retained:3,recipe:'Find 10%, halve that share to get 5%, combine the shares, then apply them.'},
+    20:{cost:3,retained:2,recipe:'Find 10%, double that share, then apply it.'},
+    25:{cost:3,retained:2,recipe:'Halve twice to find the share, then apply it.'},
+    50:{cost:2,retained:2,recipe:'Halve to find the share, then apply it.'},
+  };
+  for(const [percent,work] of Object.entries(corrections)) for(const sign of [-1,1]) {
+    const p=Number(percent),[n,d]=fraction(100+sign*p,100);
+    operations.push({n,d,label:`${sign>0?'Add':'Subtract'} ${p}% of this result`,short:`${sign>0?'+':'−'}${p}%`,...work,kind:'percent'});
   }
   const scales=Array.from({length:17},(_,i)=>i-8).map(power=>({power,n:power>0?10**power:1,d:power<0?10**-power:1,kind:'scale',short:`${power>0?'×':'÷'}${(10**Math.abs(power)).toLocaleString('en-US')}`,label:`${power>0?'Multiply':'Divide'} by ${(10**Math.abs(power)).toLocaleString('en-US')}`}));
   function orderSteps(steps,scale) {
     const multiplying=steps.filter(step=>step.kind==='multiply');
     const dividing=steps.filter(step=>step.kind==='divide');
     const percentages=steps.filter(step=>step.kind==='percent');
-    const terminating=dividing.filter(step=>[2,4,5,8].includes(step.d));
-    const recurring=dividing.filter(step=>![2,4,5,8].includes(step.d));
-    return [...(scale&&scale.power<0?[scale]:[]),...multiplying,...(scale&&scale.power>0?[scale]:[]),...terminating,...percentages,...recurring];
+    return [...(scale&&scale.power<0?[scale]:[]),...multiplying,...(scale&&scale.power>0?[scale]:[]),...dividing,...percentages];
   }
   const catalogue=new Map();
   let routes=0;
@@ -57,17 +60,19 @@ const MentalMath = (() => {
       const factor=a/b;
       if(factor<1e-9||factor>1e9) continue;
       const scale=power?shift:null;
-      // Keep decimal shifts cheap and postpone recurring division until the end.
+      // Display integer multiplication, decimal scaling, halving, then correction.
       const ordered=orderSteps(steps,scale);
-      const effort=Number((cost+(scale ? 0.18+0.025*Math.abs(power) : 0)).toFixed(6));
+      const effort=cost+(scale?1:0);
+      const retained=Math.max(1,...steps.map(step=>step.retained));
       const key=`${a}/${b}/${steps.length}`,existing=catalogue.get(key);
-      const candidate={factor,numerator:a,denominator:b,steps:ordered,effort,mentalSteps:steps.length};
-      if(!existing||effort<existing.effort||effort===existing.effort&&ordered.length<existing.steps.length) catalogue.set(key,candidate);
+      const candidate={factor,numerator:a,denominator:b,steps:ordered,effort,primitiveSteps:effort,retained,mentalSteps:steps.length};
+      if(!existing||effort<existing.effort||effort===existing.effort&&(retained<existing.retained||retained===existing.retained&&ordered.length<existing.steps.length)) catalogue.set(key,candidate);
     }
-    if(steps.length===3) return;
+    if(steps.length===3||cost>=6) return;
     for(const operation of operations) {
       if(operation.kind==='percent'&&percentageCount) continue;
-      // An immediately repeated percentage or an inverse pair only adds work.
+      if(operation.kind==='divide'&&steps.filter(step=>step.kind==='divide').length>=2)continue;
+      // An inverse pair only adds work.
       const last=steps.at(-1);
       if(last&&last.n===operation.d&&last.d===operation.n) continue;
       const [a,b]=fraction(n*operation.n,d*operation.d);
@@ -84,27 +89,27 @@ const MentalMath = (() => {
     while(lo<hi){const mid=(lo+hi)>>1;if(candidates[mid].factor<value)lo=mid+1;else hi=mid;}
     return lo;
   }
-  function choose(rate,tolerance=.02,maxMentalSteps=3) {
+  function choose(rate,tolerance=.02,maxMentalSteps=3,maxPrimitiveSteps=4) {
     if(!Number.isFinite(rate)||rate<=0||!Number.isFinite(tolerance)||tolerance<0) return null;
     let best=null;
     for(let i=lowerBound(rate*(1-tolerance)-Number.EPSILON);i<candidates.length&&candidates[i].factor<=rate*(1+tolerance)+Number.EPSILON;i++) {
       const candidate=candidates[i];
-      if(candidate.mentalSteps>maxMentalSteps)continue;
+      if(candidate.mentalSteps>maxMentalSteps||candidate.primitiveSteps>maxPrimitiveSteps)continue;
       const error=candidate.factor/rate-1;
       if(Math.abs(error)>tolerance+1e-12)continue;
-      if(!best||candidate.effort<best.effort||candidate.effort===best.effort&&Math.abs(error)<Math.abs(best.error))best={...candidate,error};
+      if(!best||candidate.effort<best.effort||candidate.effort===best.effort&&(candidate.retained<best.retained||candidate.retained===best.retained&&Math.abs(error)<Math.abs(best.error)))best={...candidate,error};
     }
     return best;
   }
-  function recommend(rate,tolerance=.02) {return choose(rate,tolerance,2)??choose(rate,tolerance,3);}
+  function recommend(rate,tolerance=.02) {return choose(rate,tolerance,3,4);}
   function adaptive(rate,preferred=.02) {
     const strict=recommend(rate,preferred),relaxed=recommend(rate,Math.max(preferred,.03));
     // Avoid a complexity cliff just because a trivial rule misses 2% slightly.
-    return strict&&(!relaxed||strict.effort<=relaxed.effort+.8)?strict:relaxed;
+    return strict&&(!relaxed||strict.primitiveSteps<=relaxed.primitiveSteps)?strict:relaxed;
   }
   function trace(rule,amount) {
     let value=amount;
-    return rule.steps.map(step=>{value=value*step.n/step.d;return {instruction:step.label,value};});
+    return rule.steps.map(step=>{value=value*step.n/step.d;return {instruction:step.label,recipe:step.recipe??step.label,value};});
   }
   function explain(rule) {return rule.steps.length?rule.steps.map(step=>step.short).join(' → '):'Keep the amount';}
   return {choose,recommend,adaptive,trace,explain,stats:{routes,candidates:candidates.length,distinctFactors,constructionMs},operations};
@@ -130,7 +135,7 @@ function render(){
   for(const [name,rule] of [['Easy',easy],...(easy&&accurate&&easy.factor===accurate.factor?[]:[[easy?'More accurate (within 1%)':'Alternative (within 1%)',accurate]])]){
     const card=document.createElement('article');card.className='panel';
     if(!rule){card.innerHTML=`<h3>${name}</h3><p>No rule in the allowed search space meets this limit.</p>`;}
-    else {const result=state.amount*rule.factor;card.innerHTML=`<h3>${name}</h3><p class="rule">${MentalMath.explain(rule)}</p><p>Result: <b>${fmt(result)} ${state.to}</b><br>Difference: <b>${fmt(result-exact)} ${state.to}</b> (${percent(rule.error)})<br>Approximate multiplier: ${fmt(rule.factor)}<br>Mental effort score: ${rule.effort.toFixed(2)}<br>${rule.steps.length} displayed steps (${rule.mentalSteps} arithmetic operations)</p><ol>${MentalMath.trace(rule,state.amount).map(step=>`<li>${step.instruction}: <b>${fmt(step.value)}</b></li>`).join('')}</ol>${name==='Easy'&&easy&&accurate&&easy.factor===accurate.factor?'<p class="subtle">This rule also meets the tighter 1% limit.</p>':''}`;}
+    else {const result=state.amount*rule.factor;card.innerHTML=`<h3>${name}</h3><p class="rule">${MentalMath.explain(rule)}</p><p>Result: <b>${fmt(result)} ${state.to}</b><br>Difference: <b>${fmt(result-exact)} ${state.to}</b> (${percent(rule.error)})<br>Approximate multiplier: ${fmt(rule.factor)}<br>Estimated elementary actions: ${rule.primitiveSteps}<br>Peak retained values in the described method: ${rule.retained}<br>${rule.steps.length} displayed steps (${rule.mentalSteps} arithmetic operations)</p><ol>${MentalMath.trace(rule,state.amount).map(step=>`<li>${step.instruction}: <b>${fmt(step.value)}</b><br><span class="subtle">${step.recipe}</span></li>`).join('')}</ol>${name==='Easy'&&easy&&accurate&&easy.factor===accurate.factor?'<p class="subtle">This rule also meets the tighter 1% limit.</p>':''}`;}
     $('rules').append(card);
   }
 }
@@ -141,7 +146,7 @@ $('show-custom').onclick=()=>{state.custom=!state.custom;render();};
 const scenarios=[
  {name:'The 180-yen example',description:'Start with the proposed rule, then replace the hypothetical rate with the dated reference rate. Notice how the same rule gains a small measurable error.',steps:[['Use 180 JPY per EUR',()=>Object.assign(state,{from:'EUR',to:'JPY',amount:10,custom:true,customRate:180,tolerance:.02})],['Use the actual reference rate',()=>state.custom=false]]},
  {name:'Reverse conversion',description:'A reverse rule needs its own search. Adding 10% does not undo subtracting 10%. Compare both directions and their error.',steps:[['Convert EUR to JPY',()=>Object.assign(state,{from:'EUR',to:'JPY',amount:20,custom:false,tolerance:.02})],['Convert 1,000 JPY back to EUR',()=>Object.assign(state,{from:'JPY',to:'EUR',amount:1000})]]},
- {name:'Precision trade-off',description:'A stricter error limit can require noticeably harder arithmetic. The effort score is a hypothesis to evaluate, not a guarantee about human performance.',steps:[['Allow 3% for EUR to CHF',()=>Object.assign(state,{from:'EUR',to:'CHF',amount:50,custom:false,tolerance:.03,adaptive:false})],['Tighten the limit to 1%',()=>state.tolerance=.01],['Try an unrealistic 0.00001% target',()=>{state.tolerance=.0000001;state.adaptive=false;state.custom=true;state.customRate=Math.PI;}]]},
+ {name:'Precision trade-off',description:'A stricter error limit may have no rule within the four-action budget. The prototype must report that gap rather than introduce difficult fractions.',steps:[['Allow 3% for EUR to CHF',()=>Object.assign(state,{from:'EUR',to:'CHF',amount:50,custom:false,tolerance:.03,adaptive:false})],['Tighten the limit to 1%',()=>state.tolerance=.01],['Try an unrealistic 0.00001% target',()=>{state.tolerance=.0000001;state.adaptive=false;state.custom=true;state.customRate=Math.PI;}]]},
  {name:'Very large and small rates',description:'Decimal shifts keep the arithmetic short even for currencies with very different nominal values.',steps:[['EUR to IDR',()=>Object.assign(state,{from:'EUR',to:'IDR',amount:20,custom:false,tolerance:.02})],['100,000 IDR to EUR',()=>Object.assign(state,{from:'IDR',to:'EUR',amount:100000})]]}
 ];
 function scenario(index){$('tabs').querySelectorAll('button').forEach((button,i)=>button.setAttribute('aria-selected',i===index));const item=scenarios[index];$('scenario').textContent=item.description;$('steps').innerHTML='';Object.assign(state,{from:'EUR',to:'JPY',amount:20,custom:false,tolerance:.02,adaptive:true});for(const [title,action] of item.steps){const button=document.createElement('button');button.textContent=title;button.style.marginRight='8px';button.onclick=()=>{action();render();};$('steps').append(button);}render();}
