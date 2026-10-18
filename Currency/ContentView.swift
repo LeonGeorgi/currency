@@ -216,7 +216,7 @@ struct ContentView: View {
                     editingAmount = false
                     makePrimary(quote)
                 } label: {
-                    Image(systemName: "arrow.up").font(.subheadline.weight(.semibold))
+                    Image(systemName: "scope").font(.subheadline.weight(.semibold))
                         .frame(width: 28, height: 28)
                 }
                 .buttonStyle(.bordered)
