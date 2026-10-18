@@ -73,7 +73,7 @@ Changes in the app request a widget refresh. Amount edits are briefly debounced 
 
 ## Experiments
 
-The [mental currency conversion experiment](docs/mental-math.md) evaluates automatically generated rules for mental arithmetic across 870 currency conversions. It includes measured errors, the search method, and a link to an offline interactive prototype on a separate branch. This is exploratory work and is not part of the app UI.
+The [mental currency conversion experiment](docs/mental-math.md) evaluates automatically generated rules for mental arithmetic across 870 currency conversions. Its conservative revision excludes unfamiliar fractions and counts the work behind percentage corrections. The [scientific evidence note](docs/mental-arithmetic-evidence.md) distinguishes experimental findings from the generator's design assumptions. An offline interactive prototype lives on a separate branch. This is exploratory work and is not part of the app UI.
 
 ## Testing
 
