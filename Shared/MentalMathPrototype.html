@@ -7,7 +7,7 @@
 [hidden]{display:none!important}:root{font:16px system-ui;color-scheme:light dark;--accent:#b76a47}body{max-width:1050px;margin:40px auto;padding:0 22px;line-height:1.5}h1{line-height:1.15}label{display:inline-grid;gap:5px;margin:0 16px 14px 0}input,select,button{font:inherit;padding:8px 12px;border:1px solid #8886;border-radius:9px;background:transparent;color:inherit}button{cursor:pointer}button[aria-selected=true]{border-color:var(--accent);color:var(--accent)}.panel{border:1px solid #8885;padding:20px;border-radius:15px;margin:20px 0}.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px}.rule{font-size:1.3rem;font-weight:600}.subtle{opacity:.65}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:8px;border-bottom:1px solid #8883}nav{display:flex;gap:8px;flex-wrap:wrap}.state{font-variant-numeric:tabular-nums}strong{color:var(--accent)}code{overflow-wrap:anywhere}
 </style>
 <h1>Mental currency rules</h1>
-<p><strong>Throwaway logic prototype.</strong> Can a short search find currency conversion rules that are both easy to remember and accurate enough? Explore the trade-off with fixed Frankfurter reference rates. This is an algorithm experiment, not a change to the iOS app.</p>
+<p><strong>Throwaway logic prototype.</strong> Can a short search find currency rules using familiar instructions instead of opaque multipliers? Try halving and decimal shifts, or compensation around 10 and 100, with intermediate values and an exact counter-rule. This is an algorithm experiment, not a change to the iOS app.</p>
 <p class="subtle" id="source"></p>
 <section class="panel">
 <label>From<select id="from"></select></label><label>To<select id="to"></select></label>
@@ -20,7 +20,8 @@
 <h2>Independently found reverse rules</h2><p class="subtle">These may be easier than undoing a forward rule. Each also includes its exact counter-rule.</p><div class="cards" id="reverse-rules"></div>
 </section>
 <section class="panel"><h2>Guided examples</h2><nav id="tabs" role="tablist"></nav><p id="scenario"></p><div id="steps"></div></section>
-<details class="panel"><summary>What the search considers</summary><p>Only doubling, halving, ×3, ×5, decimal shifts and percentage corrections built from halves and tenths. No eighths, sixths, division by 3–9, or 12.5% shortcuts. At most one percentage correction. The default cap is four elementary actions, including decimal shifts. A 25% correction counts as two halvings plus addition/subtraction; a 15% correction has four actions and three retained values. Compact labels do not count as single effortless operations.</p><p>The default targets 2% error and may accept up to 3% when it saves an elementary action. No independently simple rule is returned when that limit cannot be met with the conservative vocabulary and work budget. Every found rule also gets its exact inverse: reverse the step order and undo each operation. Inverses are shown even outside that vocabulary or error limit, without assigning an uncalibrated difficulty score. Adding 10% does not undo subtracting 10%; multiplying by 10 and then dividing by 9 does. The inverse undoes the approximate rule, not the market conversion, so its market error is calculated separately. Percentages apply to the current result. Do not round between steps.</p><p>The vocabulary and work counts are engineering choices informed by arithmetic research, not measured human response times. Actual difficulty still depends on the amount, carries, practice and individual skill. <a href="https://github.com/LeonGeorgi/currency/blob/main/docs/mental-arithmetic-evidence.md">Read the primary research note</a> for studies and limits.</p><p id="search-stats"></p></details>
+<section class="panel"><h2>Familiar ways to do the same calculation</h2><p>These exact rewrites are used by the search, not just shown as tips. Halving and decimal shifts keep one running value. Compensation uses a saved value, which counts toward the memory estimate. This is a design preference, not a measured guarantee of faster calculation for everyone.</p><div id="strategies"></div></section>
+<details class="panel"><summary>What the search considers</summary><p>Doubling, halving, decimal shifts, tripling as double plus a saved value, and compensation around 10 or 100 (×9, ×11, ×99, ×101). ×5 becomes halving followed by ×10; shifts are merged and opposing doubles/halves cancel. Percentage corrections are built from halves and tenths; −50% is simply halving. No eighths, sixths, division by 3–9, or 12.5% shortcuts. At most one percentage correction. The default cap is four elementary actions, including decimal shifts. A 25% correction counts as two halvings plus addition/subtraction; a 15% correction has four actions and three retained values. Compact labels do not count as single effortless operations.</p><p>The default targets 2% error and may accept up to 3% when it saves an elementary action. No independently simple rule is returned when that limit cannot be met with the conservative vocabulary and work budget. Every found rule also gets its exact inverse: reverse the step order and undo each operation. Inverses are shown even outside that vocabulary or error limit, without assigning an uncalibrated difficulty score. Adding 10% does not undo subtracting 10%; multiplying by 10 and then dividing by 9 does. The inverse undoes the approximate rule, not the market conversion, so its market error is calculated separately. Percentages apply to the current result. Do not round between steps.</p><p>The vocabulary and work counts are engineering choices informed by arithmetic research, not measured human response times. Actual difficulty still depends on the amount, carries, practice and individual skill. <a href="https://github.com/LeonGeorgi/currency/blob/main/docs/mental-arithmetic-evidence.md">Read the primary research note</a> for studies and limits.</p><p id="search-stats"></p></details>
 <script id="mental-math-core">
 const MentalMath = (() => {
   const gcd = (a,b) => b ? gcd(b,a%b) : a;
@@ -30,9 +31,14 @@ const MentalMath = (() => {
   const operations=[
     {n:2,d:1,label:'Double the result',short:'×2',cost:1,retained:1,kind:'multiply',recipe:'Double.'},
     {n:1,d:2,label:'Halve the result',short:'halve',cost:1,retained:1,kind:'divide',recipe:'Halve.'},
-    {n:3,d:1,label:'Triple the result',short:'×3',cost:2,retained:2,kind:'multiply',recipe:'Double, then add the saved original result.'},
+    {n:3,d:1,label:'Triple the result',short:'×3',cost:2,retained:2,kind:'multiply',recipe:'Double, then add the saved original result.',method:[{n:2,d:1,label:'Save this value, then double it',short:'save, ×2'},{addOriginal:1,label:'Add the saved value',short:'+saved'}]},
     {n:5,d:1,label:'Multiply by 5',short:'×5',cost:2,retained:1,kind:'multiply',recipe:'Halve, then multiply by 10.'},
   ];
+  // Compensation around a power of ten uses one saved value, not a free multiply.
+  for(const [power,offset] of [[10,-1],[10,1],[100,-1],[100,1]]) {
+    const factor=power+offset,verb=offset>0?'Add':'Subtract';
+    operations.push({n:factor,d:1,label:`Multiply by ${factor}`,short:`×${factor}`,cost:2,retained:2,kind:'multiply',recipe:`Save the current value, multiply by ${power}, then ${verb.toLowerCase()} the saved value.`,method:[{n:power,d:1,label:`Save this value, then multiply by ${power}`,short:`save, ×${power}`},{addOriginal:offset,label:`${verb} the saved value`,short:offset>0?'+saved':'−saved'}]});
+  }
   const corrections={
     5:{cost:3,retained:2,recipe:'Find 10%, halve that share, then apply it.'},
     10:{cost:2,retained:2,recipe:'Find 10%, then apply that share.'},
@@ -43,14 +49,28 @@ const MentalMath = (() => {
   };
   for(const [percent,work] of Object.entries(corrections)) for(const sign of [-1,1]) {
     const p=Number(percent),[n,d]=fraction(100+sign*p,100);
+    if(p===50&&sign<0)continue; // Exactly halving; do not charge for a saved branch.
     operations.push({n,d,label:`${sign>0?'Add':'Subtract'} ${p}% of this result`,short:`${sign>0?'+':'−'}${p}%`,...work,kind:'percent'});
   }
-  const scales=Array.from({length:17},(_,i)=>i-8).map(power=>({power,n:power>0?10**power:1,d:power<0?10**-power:1,kind:'scale',short:`${power>0?'×':'÷'}${(10**Math.abs(power)).toLocaleString('en-US')}`,label:`${power>0?'Multiply':'Divide'} by ${(10**Math.abs(power)).toLocaleString('en-US')}`}));
+  const scaleCache=new Map();
+  const makeScale=power=>{
+    if(!scaleCache.has(power))scaleCache.set(power,{power,n:power>0?10**power:1,d:power<0?10**-power:1,kind:'scale',cost:1,short:`${power>0?'×':'÷'}${(10**Math.abs(power)).toLocaleString('en-US')}`,label:`${power>0?'Multiply':'Divide'} by ${(10**Math.abs(power)).toLocaleString('en-US')}`});
+    return scaleCache.get(power);
+  };
+  const scales=Array.from({length:17},(_,i)=>makeScale(i-8));
   function orderSteps(steps,scale) {
-    const multiplying=steps.filter(step=>step.kind==='multiply');
+    // Lower ×5 to halving + a decimal shift, merge shifts, and cancel ×2/halve.
+    // This also discovers ÷5, ×25, ÷25, ×50, etc. without opaque extra operators.
+    const fives=steps.filter(step=>step.n===5&&step.d===1).length;
+    const multiplying=steps.filter(step=>step.kind==='multiply'&&step.n!==5);
     const dividing=steps.filter(step=>step.kind==='divide');
+    for(let i=0;i<fives;i++)dividing.push(operations[1]);
+    while(dividing.length&&multiplying.some(step=>step.n===2&&step.d===1)){
+      dividing.pop();multiplying.splice(multiplying.findIndex(step=>step.n===2&&step.d===1),1);
+    }
     const percentages=steps.filter(step=>step.kind==='percent');
-    return [...(scale&&scale.power<0?[scale]:[]),...multiplying,...(scale&&scale.power>0?[scale]:[]),...dividing,...percentages];
+    const power=(scale?.power??0)+fives;
+    return [...dividing,...multiplying,...(power?[makeScale(power)]:[]),...percentages];
   }
   const catalogue=new Map();
   let routes=0;
@@ -62,13 +82,15 @@ const MentalMath = (() => {
       const factor=a/b;
       if(factor<1e-9||factor>1e9) continue;
       const scale=power?shift:null;
-      // Display integer multiplication, decimal scaling, halving, then correction.
       const ordered=orderSteps(steps,scale);
-      const effort=cost+(scale?1:0);
-      const retained=Math.max(1,...steps.map(step=>step.retained));
-      const key=`${a}/${b}/${steps.length}`,existing=catalogue.get(key);
-      const candidate={factor,numerator:a,denominator:b,steps:ordered,effort,primitiveSteps:effort,retained,mentalSteps:steps.length};
-      if(!existing||effort<existing.effort||effort===existing.effort&&(retained<existing.retained||retained===existing.retained&&ordered.length<existing.steps.length)) catalogue.set(key,candidate);
+      if(ordered.filter(step=>step.kind==='divide').length>2)continue;
+      const effort=ordered.reduce((sum,step)=>sum+step.cost,0);
+      const retained=Math.max(1,...ordered.map(step=>step.retained??1));
+      const mentalSteps=ordered.filter(step=>step.kind!=='scale').length;
+      const key=`${a}/${b}/${mentalSteps}`,existing=catalogue.get(key);
+      const displayedSteps=ordered.reduce((sum,step)=>sum+(step.method?.length??1),0);
+      const candidate={factor,numerator:a,denominator:b,steps:ordered,effort,primitiveSteps:effort,retained,mentalSteps,displayedSteps};
+      if(!existing||effort<existing.effort||effort===existing.effort&&(retained<existing.retained||retained===existing.retained&&displayedSteps<existing.displayedSteps)) catalogue.set(key,candidate);
     }
     if(steps.length===3||cost>=6) return;
     for(const operation of operations) {
@@ -112,23 +134,35 @@ const MentalMath = (() => {
   function inverse(rule,reverseRate) {
     if(!rule||!Number.isFinite(reverseRate)||reverseRate<=0)return null;
     if(rule.inverseOf)return {...rule.inverseOf,error:rule.inverseOf.factor/reverseRate-1};
+    const instruction=(n,d,recipe)=>{
+      const familiar=recommend(n/d,0);
+      // Reuse sequential decompositions in counter-rules too (×4, ÷5, etc.).
+      if(familiar&&familiar.retained===1)return familiar.steps.map(step=>({...step,recipe}));
+      const multiply=d===1,operand=multiply?n:d;
+      return [{n,d,kind:'inverse',short:`${multiply?'×':'÷'}${operand.toLocaleString('en-US')}`,label:`${multiply?'Multiply':'Divide'} by ${operand.toLocaleString('en-US')}`,recipe}];
+    };
     const steps=rule.steps.toReversed().flatMap(step=>{
       const n=step.d,d=step.n;
       if(step.kind==='percent') {
         const recipe=`To undo ${step.short}, ${n>1?`multiply by ${n}`:''}${n>1&&d>1?', then ':''}${d>1?`divide by ${d}`:''}. Changing the percentage sign would not undo it.`;
-        return [...(n>1?[{n,d:1,kind:'inverse',short:`×${n}`,label:`Undo ${step.short}, multiply by ${n}`,recipe}]:[]),...(d>1?[{n:1,d,kind:'inverse',short:`÷${d}`,label:`${n>1?'Then divide':'Divide'} by ${d}`,recipe}]:[])];
+        return [...(n>1?instruction(n,1,recipe):[]),...(d>1?instruction(1,d,recipe):[])];
       }
-      const multiply=d===1,operand=multiply?n:d;
-      return [{n,d,kind:'inverse',short:multiply?`×${operand.toLocaleString('en-US')}`:n===1&&d===2?'halve':`÷${operand.toLocaleString('en-US')}`,label:`${multiply?'Multiply':'Divide'} by ${operand.toLocaleString('en-US')}`,recipe:`Undo “${step.label.toLowerCase()}”.`}];
+      return instruction(n,d,`Undo “${step.label.toLowerCase()}”.`);
     });
     const factor=rule.denominator/rule.numerator;
     return {factor,numerator:rule.denominator,denominator:rule.numerator,steps,error:factor/reverseRate-1,inverseOf:rule};
   }
   function trace(rule,amount) {
     let value=amount;
-    return rule.steps.map(step=>{value=value*step.n/step.d;return {instruction:step.label,recipe:step.recipe??step.label,value};});
+    return rule.steps.flatMap(step=>{
+      const saved=value;
+      return (step.method??[step]).map(action=>{
+        value=action.addOriginal?value+action.addOriginal*saved:value*action.n/action.d;
+        return {instruction:action.label,recipe:step.recipe??step.label,value};
+      });
+    });
   }
-  function explain(rule) {return rule.steps.length?rule.steps.map(step=>step.short).join(' → '):'Keep the amount';}
+  function explain(rule) {return rule.steps.length?rule.steps.flatMap(step=>(step.method??[step]).map(action=>action.short)).join(' → '):'Keep the amount';}
   return {choose,recommend,adaptive,inverse,trace,explain,stats:{routes,candidates:candidates.length,distinctFactors,constructionMs},operations};
 })();
 </script>
@@ -142,6 +176,8 @@ const state={from:'EUR',to:'JPY',amount:20,reverseAmount:1000,tolerance:.02,cust
 for(const id of ['from','to'])for(const code of Object.keys(rates).sort())$(id).add(new Option(code,code));
 $('source').innerHTML=`Frankfurter reference date: <b>${fixture.date}</b>. Cross-rates and reverse rates are derived from the same EUR snapshot. <a href="https://api.frankfurter.dev/v1/latest?base=EUR">Source API</a>. No requests are made by this page.`;
 $('search-stats').textContent=`${MentalMath.stats.routes.toLocaleString()} short routes; ${MentalMath.stats.distinctFactors.toLocaleString()} distinct factors, keeping alternatives with different step counts. Catalogue built in ${MentalMath.stats.constructionMs.toFixed(0)} ms on this device.`;
+const rewriteExamples=[['×5',5],['÷5',.2],['×25',25],['÷25',.04],['×50',50],['÷50',.02],['×4',4],['−50%',.5],['×9',9],['×11',11],['×99',99],['×101',101]];
+$('strategies').innerHTML=`<table><thead><tr><th>Calculation</th><th>Instructions</th><th>Actions / retained values</th></tr></thead><tbody>${rewriteExamples.map(([label,factor])=>{const rule=MentalMath.recommend(factor,0);return `<tr><td>${label}</td><td>${MentalMath.explain(rule)}</td><td>${rule.primitiveSteps} / ${rule.retained}</td></tr>`;}).join('')}</tbody></table>`;
 function render(){
   $('from').value=state.from;$('to').value=state.to;$('amount').value=state.amount;$('reverse-amount').value=state.reverseAmount;$('reverse-currency').textContent=state.to;$('tolerance').value=state.tolerance;$('custom-rate').value=state.customRate;$('custom-label').hidden=!state.custom;$('adaptive').checked=state.adaptive;
   const rate=state.custom?state.customRate:rates[state.to]/rates[state.from];
@@ -161,7 +197,7 @@ function renderDirection(target,rate,from,to,amount,reverseAmount,limit){
     if(!rule){card.innerHTML=`<h3>${from} → ${to} · ${name}</h3><p>No independently simple rule meets this limit. Counter-rules of any rules found in the other direction are shown in their cards.</p>`;}
     else {
       const result=amount*rule.factor,counter= MentalMath.inverse(rule,1/rate),reverseResult=reverseAmount*counter.factor;
-      card.innerHTML=`<h3>${from} → ${to} · ${name}</h3><p class="rule">${MentalMath.explain(rule)}</p><p>${fmt(amount)} ${from} → <b>${fmt(result)} ${to}</b><br>Difference: <b>${fmt(result-amount*rate)} ${to}</b> (${percent(rule.error)})<br>Approximate multiplier: ${fmt(rule.factor)}<br>Estimated elementary actions: ${rule.primitiveSteps}<br>Peak retained values in the described method: ${rule.retained}<br>${rule.steps.length} displayed steps (${rule.mentalSteps} arithmetic operations)</p>${traceHTML(rule,amount)}${name==='Easy'&&accurate&&easy.factor===accurate.factor?'<p class="subtle">This rule also meets the tighter 1% limit.</p>':''}<hr><h4>${to} → ${from} · Exact inverse of this rule</h4><p class="rule">${MentalMath.explain(counter)}</p><p>${fmt(reverseAmount)} ${to} → <b>${fmt(reverseResult)} ${from}</b><br>Difference from the reference rate: <b>${fmt(reverseResult-reverseAmount/rate)} ${from}</b> (${percent(counter.error)})<br>Approximate multiplier: ${fmt(counter.factor)}</p><p class="subtle">Always available, even if harder. Difficulty is not scored. This exactly undoes the rule above; it still approximates the reference rate.${Math.abs(counter.error)>limit+1e-12?' Its error exceeds the selected easy-search limit.':''}</p>${traceHTML(counter,reverseAmount)}`;
+      card.innerHTML=`<h3>${from} → ${to} · ${name}</h3><p class="rule">${MentalMath.explain(rule)}</p><p>${fmt(amount)} ${from} → <b>${fmt(result)} ${to}</b><br>Difference: <b>${fmt(result-amount*rate)} ${to}</b> (${percent(rule.error)})<br>Approximate multiplier: ${fmt(rule.factor)}<br>Estimated elementary actions: ${rule.primitiveSteps}<br>Peak retained values in the described method: ${rule.retained}<br>${MentalMath.trace(rule,amount).length} displayed steps (${rule.mentalSteps} search operations)</p>${traceHTML(rule,amount)}${name==='Easy'&&accurate&&easy.factor===accurate.factor?'<p class="subtle">This rule also meets the tighter 1% limit.</p>':''}<hr><h4>${to} → ${from} · Exact inverse of this rule</h4><p class="rule">${MentalMath.explain(counter)}</p><p>${fmt(reverseAmount)} ${to} → <b>${fmt(reverseResult)} ${from}</b><br>Difference from the reference rate: <b>${fmt(reverseResult-reverseAmount/rate)} ${from}</b> (${percent(counter.error)})<br>Approximate multiplier: ${fmt(counter.factor)}</p><p class="subtle">Always available, even if harder. Difficulty is not scored. This exactly undoes the rule above; it still approximates the reference rate.${Math.abs(counter.error)>limit+1e-12?' Its error exceeds the selected easy-search limit.':''}</p>${traceHTML(counter,reverseAmount)}`;
     }
     $(target).append(card);
   }
@@ -171,6 +207,7 @@ $('adaptive').onchange=()=>{state.adaptive=$('adaptive').checked;render();};
 $('swap').onclick=()=>{[state.from,state.to]=[state.to,state.from];[state.amount,state.reverseAmount]=[state.reverseAmount,state.amount];if(state.custom)state.customRate=1/state.customRate;render();};
 $('show-custom').onclick=()=>{state.custom=!state.custom;render();};
 const scenarios=[
+ {name:'Easier instructions',description:'The generator uses exact decompositions. Halve before shifting the decimal point; compensation saves the original amount, so it also needs memory.',steps:[['×5: halve, then ×10',()=>Object.assign(state,{custom:true,customRate:5,amount:19.99,tolerance:1e-7,adaptive:false})],['÷5: double, then ÷10',()=>state.customRate=.2],['×25: halve twice, then ×100',()=>state.customRate=25],['×9: ×10 minus the saved value',()=>state.customRate=9],['×11: ×10 plus the saved value',()=>state.customRate=11]]},
  {name:'The 180-yen example',description:'Start with the proposed rule, then replace the hypothetical rate with the dated reference rate. Notice how the same rule gains a small measurable error.',steps:[['Use 180 JPY per EUR',()=>Object.assign(state,{from:'EUR',to:'JPY',amount:10,custom:true,customRate:180,tolerance:.02})],['Use the actual reference rate',()=>state.custom=false]]},
  {name:'Reverse conversion',description:'Every rule has an exact counter-rule, even if the counter-rule is harder. Compare it with an independently found reverse shortcut. Adding 10% does not undo subtracting 10%.',steps:[['Compare EUR and JPY',()=>Object.assign(state,{from:'EUR',to:'JPY',amount:20,reverseAmount:1000,custom:false,tolerance:.02})],['CNY: counter-rule without an easy reverse rule',()=>Object.assign(state,{from:'EUR',to:'CNY',amount:20,reverseAmount:100})],['CHF: inverse error exceeds 3%',()=>Object.assign(state,{from:'EUR',to:'CHF',amount:20,reverseAmount:100})]]},
  {name:'Precision trade-off',description:'A stricter error limit may have no rule within the four-action budget. The prototype must report that gap rather than introduce difficult fractions.',steps:[['Allow 3% for EUR to CHF',()=>Object.assign(state,{from:'EUR',to:'CHF',amount:50,custom:false,tolerance:.03,adaptive:false})],['Tighten the limit to 1%',()=>state.tolerance=.01],['Try an unrealistic 0.00001% target',()=>{state.tolerance=.0000001;state.adaptive=false;state.custom=true;state.customRate=Math.PI;}]]},

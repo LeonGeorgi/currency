@@ -13,7 +13,7 @@ const math=context.math;
 const fixture=JSON.parse(html.match(/<script id="rate-fixture" type="application\/json">([\s\S]*?)<\/script>/)[1]);
 const rates={EUR:1,...fixture.rates};
 const result={source:'https://api.frankfurter.dev/v1/latest?base=EUR',date:fixture.date,stats:math.stats,examples:[],benchmarks:[]};
-const summarize=rule=>rule?{rule:math.explain(rule),factor:rule.factor,errorPercent:rule.error*100,effort:rule.effort,primitiveSteps:rule.primitiveSteps,retained:rule.retained,steps:rule.steps.length,mentalSteps:rule.mentalSteps}:null;
+const summarize=rule=>rule?{rule:math.explain(rule),factor:rule.factor,errorPercent:rule.error*100,effort:rule.effort,primitiveSteps:rule.primitiveSteps,retained:rule.retained,steps:math.trace(rule,1).length,mentalSteps:rule.mentalSteps}:null;
 const coins=['JPY','USD','GBP','CHF','CNY','INR','KRW','SEK','THB','TRY','IDR','AUD'];
 for(const quote of coins)for(const [from,to,amount] of [['EUR',quote,20],[quote,'EUR',1000]]){
   const rate=rates[to]/rates[from];
@@ -28,7 +28,7 @@ for(const tolerance of [.01,.02,.03,.05])for(const maxPrimitiveSteps of [2,3,4,5
   const chosen=pairs.map(pair=>math.choose(pair.rate,tolerance,3,maxPrimitiveSteps));
   const found=chosen.filter(Boolean);
   const errors=found.map(rule=>Math.abs(rule.error)*100).sort((a,b)=>a-b);
-  result.benchmarks.push({tolerancePercent:tolerance*100,maxPrimitiveSteps,pairs:pairs.length,found:found.length,coveragePercent:found.length/pairs.length*100,medianErrorPercent:errors[Math.floor(errors.length/2)]??null,worstErrorPercent:errors.at(-1)??null,maxDisplayedSteps:found.length?Math.max(...found.map(rule=>rule.steps.length)):0});
+  result.benchmarks.push({tolerancePercent:tolerance*100,maxPrimitiveSteps,pairs:pairs.length,found:found.length,coveragePercent:found.length/pairs.length*100,medianErrorPercent:errors[Math.floor(errors.length/2)]??null,worstErrorPercent:errors.at(-1)??null,maxDisplayedSteps:found.length?Math.max(...found.map(rule=>math.trace(rule,1).length)):0});
 }
 result.stats.allPairsSweepMs=performance.now()-start;
 result.defaultRules=pairs.map(pair=>({...pair,...summarize(math.recommend(pair.rate,.02))}));
@@ -99,10 +99,22 @@ for(const {rate} of [...pairs,...[1,180,1/180,1e-8,1e8].map(rate=>({rate}))]){
   }
 }
 result.inverseChecks={inverseRules,roundTrips,maxRoundTripResidual,maxInverseErrorResidual};
-assert.equal(math.explain(math.inverse(math.recommend(180,.02),1/180)),'×10 → ÷9 → ÷100 → halve');
+const subtractTen=math.operations.find(step=>step.short==='−10%');
+assert.equal(math.explain(math.inverse({factor:.9,numerator:9,denominator:10,steps:[subtractTen]},1/.9)),'×10 → ÷9');
 assert.ok(math.inverse(math.adaptive(.9272,.02),1/.9272).error>.03,'Forward 3% tolerance does not transfer to inverse');
 assert.equal(math.adaptive(1/7.524,.02),null);
 assert.ok(math.inverse(math.adaptive(7.524,.02),1/7.524),'CNY still needs its harder counter-rule');
+result.rewrites=[];
+for(const [label,factor] of [['×5',5],['÷5',.2],['×25',25],['÷25',.04],['×50',50],['÷50',.02],['×4',4],['−50%',.5],['×9',9],['×11',11],['×99',99],['×101',101]]){
+  const rule=math.recommend(factor,0);
+  assert.ok(rule,`Exact strategy required for ${label}`);
+  assert.equal(rule.factor,factor);
+  for(const amount of [0,.01,1,5,19.99,100,9999])assert.ok(Math.abs(execute(rule,amount)-amount*factor)/Math.max(1,Math.abs(amount*factor))<1e-12);
+  result.rewrites.push({label,...summarize(rule),traceFor19_99:math.trace(rule,19.99)});
+}
+assert.equal(math.explain(math.recommend(5,0)),'halve → ×10');
+assert.equal(math.explain(math.recommend(.2,0)),'×2 → ÷10');
+assert.equal(math.recommend(.5,0).primitiveSteps,1);
 result.grid=[];
 for(const tolerance of [.01,.03]){
   let found=0,worstError=0,maxEffort=0;
@@ -118,4 +130,5 @@ console.log('Catalogue:',result.stats,'\nRate date:',fixture.date,'Currencies:',
 console.table(result.examples.map(row=>({pair:`${row.from}→${row.to}`,rate:row.rate.toPrecision(7),easy:row.easy?.rule,error:row.easy?row.easy.errorPercent.toFixed(3)+'%':'—',precise:row.accurate?.rule,preciseError:row.accurate?row.accurate.errorPercent.toFixed(3)+'%':'—'})));
 console.table(result.benchmarks);console.table(result.grid);
 console.log('Paired coverage:',result.pairedSummary,'\nInverse checks:',result.inverseChecks);
+console.table(result.rewrites.map(({label,rule,primitiveSteps,retained})=>({label,rule,primitiveSteps,retained})));
 console.log('Full results: build/MentalMath/evaluation.json');
