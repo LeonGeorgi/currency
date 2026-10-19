@@ -11,6 +11,8 @@ struct ContentView: View {
     @State private var store = ExchangeStore()
     @State private var picker: CurrencyPickerKind?
     @State private var showingInfo = false
+    @State private var showingSettings = false
+    @Environment(\.appAccent) private var accent
     @ScaledMetric(relativeTo: .largeTitle) private var amountFontSize = 60
     @FocusState private var editingAmount: Bool
     @Environment(\.scenePhase) private var scenePhase
@@ -18,7 +20,7 @@ struct ContentView: View {
 
     private var quotes: [String] { CurrencySelection.restoreQuotes(storedQuotes, legacyQuote: legacyQuote) }
     private var selection: CurrencySelection { CurrencySelection(base: base, quotes: quotes) }
-    private var sharedSettings: ConversionSettings { ConversionSettings(selection: selection, amount: amount) }
+    private var sharedSettings: ConversionSettings { ConversionSettings(selection: selection, amount: amount, accent: accent) }
     private var rateDates: [Date] { store.quotes.compactMap { $0.rate?.date }.sorted() }
     private var presetAmounts: [Double] {
         let reference = store.euroReference
@@ -114,6 +116,8 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu("Mehr", systemImage: "ellipsis") {
+                        Button("Einstellungen", systemImage: "gearshape") { showingSettings = true }
+                            .accessibilityIdentifier("open-settings")
                         Button("Aktualisieren", systemImage: "arrow.clockwise") { Task { await refresh() } }
                         Button("Über Devisen", systemImage: "info.circle") { showingInfo = true }
                     }
@@ -141,6 +145,7 @@ struct ContentView: View {
                 }
             }
             .sheet(isPresented: $showingInfo) { InfoView() }
+            .sheet(isPresented: $showingSettings) { AppearanceSettingsView() }
             .task { await store.loadCurrencies() }
             .task(id: selection) { await store.loadRates(selection: selection) }
             .onChange(of: sharedSettings, initial: true) { _, settings in
@@ -215,7 +220,7 @@ struct ContentView: View {
                             .buttonStyle(.bordered)
                             .buttonBorderShape(.capsule)
                             .controlSize(.large)
-                            .tint(amount == preset ? Color.accentColor : Color.primary)
+                            .tint(amount == preset ? accent.color : Color.primary)
                             .accessibilityAddTraits(amount == preset ? [.isSelected] : [])
                             .accessibilityHint("Als Betrag verwenden")
                             .accessibilityIdentifier("amount-preset-\(preset)")
@@ -342,6 +347,7 @@ private enum CurrencyPickerKind: String, Identifiable {
 }
 
 struct ComparisonPicker: View {
+    @Environment(\.appAccent) private var accent
     let currencies: [Currency]
     let onSave: ([String]) -> Void
     @State private var selected: [String]
@@ -381,7 +387,7 @@ struct ComparisonPicker: View {
                         }
                         Spacer()
                         if selected.contains(currency.code) {
-                            Image(systemName: "checkmark").foregroundStyle(Color.accentColor)
+                            Image(systemName: "checkmark").foregroundStyle(accent.color)
                         }
                     }
                     .contentShape(Rectangle())

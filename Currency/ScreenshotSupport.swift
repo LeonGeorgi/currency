@@ -19,15 +19,18 @@ enum ScreenshotSupport {
         return ProcessInfo.processInfo.arguments.contains("--screenshot-dark") ? .dark : .light
     }
 
-    static func prepare() {
+    static func prepare() { _ = prepared }
+
+    private static let prepared: Void = {
         #if DEBUG
         guard isEnabled else { return }
+        if ProcessInfo.processInfo.arguments.contains("--keep-screenshot-settings") { return }
         defaults.removePersistentDomain(forName: "de.leon.currency.screenshots")
         defaults.set("EUR", forKey: "baseCurrency")
         defaults.set(CurrencySelection.storeQuotes(["USD", "JPY", "GBP", "CHF"]), forKey: "quoteCurrencies")
         defaults.set(100.0, forKey: "conversionAmount")
         #endif
-    }
+    }()
 
     #if DEBUG
     static let date = Date(timeIntervalSince1970: 1_792_108_800) // 16 October 2026, UTC

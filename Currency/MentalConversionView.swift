@@ -47,6 +47,7 @@ struct MentalConversionView: View {
 
 /// Native text and layout; only the curved connector needs a small custom Shape.
 private struct MentalCalculationFlow: View {
+    @Environment(\.appAccent) private var accent
     let rule: MentalRule
     let amount: Double
     let from: String
@@ -93,7 +94,7 @@ private struct MentalCalculationFlow: View {
                             .frame(height: valueHeight)
                     }
                     .font(.custom("PatrickHand-Regular", size: 24, relativeTo: .body))
-                    .foregroundStyle(index == values.count - 1 ? Color.accentColor : Color.primary)
+                    .foregroundStyle(index == values.count - 1 ? accent.color : Color.primary)
                     .lineLimit(1).minimumScaleFactor(0.55)
                 }
             }
@@ -104,7 +105,7 @@ private struct MentalCalculationFlow: View {
                     HStack(spacing: 6) {
                         ScribbleCalculationArrow(variation: index)
                             .stroke(style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round))
-                            .foregroundStyle(Color.accentColor.opacity(0.65))
+                            .foregroundStyle(accent.color.opacity(0.65))
                             .frame(width: 16, height: valueHeight + gap)
                             .scaleEffect(x: layoutDirection == .rightToLeft ? -1 : 1)
                             .accessibilityHidden(true)
@@ -129,13 +130,13 @@ private struct MentalCalculationFlow: View {
             ForEach(values.indices, id: \.self) { index in
                 Text(value(at: index))
                     .font(.custom("PatrickHand-Regular", size: 24, relativeTo: .body))
-                    .foregroundStyle(index == values.count - 1 ? Color.accentColor : Color.primary)
+                    .foregroundStyle(index == values.count - 1 ? accent.color : Color.primary)
                     .fixedSize(horizontal: false, vertical: true)
                 if index < steps.count {
                     HStack(spacing: 16) {
                         ScribbleCalculationArrow(variation: index)
                             .stroke(style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round))
-                            .foregroundStyle(Color.accentColor.opacity(0.65))
+                            .foregroundStyle(accent.color.opacity(0.65))
                             .frame(width: 24, height: 48)
                             .accessibilityHidden(true)
                         Text(operation(steps[index].calculation))

@@ -1,0 +1,86 @@
+{
+  "fill": {
+    "automatic-gradient": "extended-srgb:1.00000,0.17647,0.33333,1.00000"
+  },
+  "groups": [
+    {
+      "layers": [
+        {
+          "fill-specializations": [
+            {
+              "appearance": "dark",
+              "value": "system-light"
+            }
+          ],
+          "image-name": "Pink-04-Dollar.svg",
+          "name": "04-Dollar"
+        }
+      ],
+      "name": "04 \u00b7 Dollar engraving",
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    },
+    {
+      "layers": [
+        {
+          "image-name": "Pink-03-Dollar-Coin.svg",
+          "name": "03-Dollar-Coin"
+        }
+      ],
+      "name": "03 \u00b7 Dollar coin",
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.4
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.12
+      }
+    },
+    {
+      "layers": [
+        {
+          "image-name": "Pink-02-Euro.svg",
+          "name": "02-Euro"
+        }
+      ],
+      "name": "02 \u00b7 Euro engraving",
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0
+      },
+      "translucency": {
+        "enabled": false,
+        "value": 0
+      }
+    },
+    {
+      "layers": [
+        {
+          "image-name": "Pink-01-Euro-Coin.svg",
+          "name": "01-Euro-Coin"
+        }
+      ],
+      "name": "01 \u00b7 Euro coin",
+      "shadow": {
+        "kind": "neutral",
+        "opacity": 0.35
+      },
+      "translucency": {
+        "enabled": true,
+        "value": 0.16
+      }
+    }
+  ],
+  "supported-platforms": {
+    "squares": [
+      "iOS"
+    ]
+  }
+}

@@ -2,6 +2,7 @@ import SwiftUI
 import Charts
 
 struct HistoryChart: View {
+    @Environment(\.appAccent) private var accent
     let rates: [Rate]
     let quote: String
     let period: RatePeriod
@@ -44,15 +45,15 @@ struct HistoryChart: View {
             Chart {
                 ForEach(rates) { rate in
                     AreaMark(x: .value(String(localized: "Datum"), rate.date), yStart: .value(String(localized: "Minimum"), domain.lowerBound), yEnd: .value(String(localized: "Kurs"), rate.rate))
-                        .foregroundStyle(LinearGradient(colors: [Color.accentColor.opacity(0.20), Color.accentColor.opacity(0.02)], startPoint: .top, endPoint: .bottom))
+                        .foregroundStyle(LinearGradient(colors: [accent.color.opacity(0.20), accent.color.opacity(0.02)], startPoint: .top, endPoint: .bottom))
                     LineMark(x: .value(String(localized: "Datum"), rate.date), y: .value(String(localized: "Kurs"), rate.rate))
-                        .foregroundStyle(Color.accentColor)
+                        .foregroundStyle(accent.color)
                         .accessibilityLabel(rate.date.formatted(APIDate.displayStyle))
                         .accessibilityValue(CurrencyDisplay.amount(rate.rate, code: quote))
                 }
                 if let selected {
                     RuleMark(x: .value(String(localized: "Datum"), selected.date)).foregroundStyle(.secondary.opacity(0.5))
-                    PointMark(x: .value(String(localized: "Datum"), selected.date), y: .value(String(localized: "Kurs"), selected.rate)).foregroundStyle(Color.accentColor)
+                    PointMark(x: .value(String(localized: "Datum"), selected.date), y: .value(String(localized: "Kurs"), selected.rate)).foregroundStyle(accent.color)
                 }
             }
             .environment(\.timeZone, APIDate.calendar.timeZone)

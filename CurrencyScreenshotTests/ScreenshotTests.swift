@@ -2,6 +2,83 @@ import XCTest
 
 @MainActor
 final class ScreenshotTests: XCTestCase {
+    func testAppearanceAndAlternateIconsPersist() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["--screenshots", "--test-app-icons", "-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]
+        app.launch()
+        waitForRates(in: app)
+
+        func openSettings() {
+            app.buttons["Mehr"].tap()
+            app.buttons["open-settings"].tap()
+            XCTAssertTrue(app.buttons["accent-original"].waitForExistence(timeout: 5))
+        }
+
+        func colorButton(_ color: String) -> XCUIElement {
+            let button = app.buttons["accent-\(color)"]
+            for _ in 0..<5 {
+                if button.isHittable { break }
+                app.swipeDown()
+            }
+            for _ in 0..<5 {
+                if button.isHittable { break }
+                app.swipeUp()
+            }
+            return button
+        }
+
+        func select(_ color: String) {
+            let button = colorButton(color)
+            button.tap()
+            let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+            let systemAlert = springboard.alerts.firstMatch
+            if systemAlert.waitForExistence(timeout: 3) {
+                systemAlert.buttons.firstMatch.tap()
+                XCTAssertTrue(systemAlert.waitForNonExistence(timeout: 5))
+            }
+            let appAlert = app.alerts.firstMatch
+            if appAlert.exists {
+                XCTAssertFalse(app.alerts["Die Farbe konnte nicht geändert werden."].exists)
+                appAlert.buttons.firstMatch.tap()
+                XCTAssertTrue(appAlert.waitForNonExistence(timeout: 5))
+            }
+            XCTAssertTrue(app.wait(for: .runningForeground, timeout: 5))
+            let settled = XCTNSPredicateExpectation(predicate: NSPredicate(format: "enabled == true"), object: button)
+            XCTAssertEqual(XCTWaiter.wait(for: [settled], timeout: 10), .completed)
+            XCTAssertFalse(app.alerts["Die Farbe konnte nicht geändert werden."].exists)
+            let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "selected == true AND enabled == true"), object: button)
+            XCTAssertEqual(XCTWaiter.wait(for: [selected], timeout: 10), .completed)
+        }
+
+        openSettings()
+        select("orange")
+        select("blue")
+        XCTAssertEqual(app.images["current-icon-preview"].value as? String, "Blau")
+        let settingsImage = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        settingsImage.name = "appearance-blue-settings"
+        settingsImage.lifetime = .keepAlways
+        add(settingsImage)
+        app.buttons["Fertig"].tap()
+        let overviewImage = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        overviewImage.name = "appearance-blue-overview"
+        overviewImage.lifetime = .keepAlways
+        add(overviewImage)
+        app.terminate()
+        app.launchArguments.append("--keep-screenshot-settings")
+        app.launch()
+        waitForRates(in: app)
+        openSettings()
+        XCTAssertTrue(colorButton("blue").isSelected)
+        for _ in 0..<5 {
+            if app.buttons["accent-original"].isHittable { break }
+            app.swipeDown()
+        }
+        select("original")
+        app.buttons["Fertig"].tap()
+        app.terminate()
+    }
+
     func testAmountPresets() {
         let app = XCUIApplication()
         app.launchArguments = ["--screenshots", "-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]

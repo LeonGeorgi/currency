@@ -36,6 +36,23 @@
 		A11CE0000000000000000106 /* CurrencyTests/MentalMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0000000000000000105; };
 		A11CE0000000000000000202 /* Currency/Resources/Fonts/PatrickHand-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A11CE0000000000000000201; };
 		A11CE0000000000000000204 /* Currency/Resources/Fonts/PatrickHand-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = A11CE0000000000000000203; };
+		6951708FFBB86F0ECAAC022F /* Shared/AppAccent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E485F860207204CAFF5ADD3B; };
+		F9801E0DE0124725C56C7D55 /* Shared/AppAccent.swift in Sources */ = {isa = PBXBuildFile; fileRef = E485F860207204CAFF5ADD3B; };
+		9C46CDE14183705B827CC043 /* Currency/AppearanceSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C349712CF91C3308BD1FA7E; };
+		814C957F5696F2A57B2264A7 /* Currency/AppIcons/AppIcon-Blue.icon in Resources */ = {isa = PBXBuildFile; fileRef = D9346EB1F0F433DB0F3A88C3; };
+		2DBE542F5832CCC2B16D416D /* Currency/AppIcons/AppIcon-Brown.icon in Resources */ = {isa = PBXBuildFile; fileRef = B7DEE79AB6782C056113BDB2; };
+		3370D00587FA39029BF3CDB6 /* Currency/AppIcons/AppIcon-Cyan.icon in Resources */ = {isa = PBXBuildFile; fileRef = DF3952B0313976BE20BF993F; };
+		B27823010E4C4292AA0D803C /* Currency/AppIcons/AppIcon-Gray.icon in Resources */ = {isa = PBXBuildFile; fileRef = 11A27B64FD2D83EA9DB27A50; };
+		A3381B1173852C2AE657F452 /* Currency/AppIcons/AppIcon-Green.icon in Resources */ = {isa = PBXBuildFile; fileRef = BCE1B435D0CD566E8EEA3B8D; };
+		4B4293CF3AC3CAA4508AA5A2 /* Currency/AppIcons/AppIcon-Indigo.icon in Resources */ = {isa = PBXBuildFile; fileRef = 51F9AB523E5FC6242A91BC37; };
+		04C09175C668426D634AA681 /* Currency/AppIcons/AppIcon-Mint.icon in Resources */ = {isa = PBXBuildFile; fileRef = 0818824B66982859DD776F45; };
+		5F2F189640BDF00BB7795492 /* Currency/AppIcons/AppIcon-Orange.icon in Resources */ = {isa = PBXBuildFile; fileRef = 3A316232438512147EA98BD2; };
+		EACA79C4DFE8A6FBF9F0064E /* Currency/AppIcons/AppIcon-Pink.icon in Resources */ = {isa = PBXBuildFile; fileRef = 1C238A76BBC4D96CBB6AF795; };
+		A8ABCA8DF7482713BE907715 /* Currency/AppIcons/AppIcon-Purple.icon in Resources */ = {isa = PBXBuildFile; fileRef = D2F0416639CC58F7A8072740; };
+		49A3559307D21F091558C4B7 /* Currency/AppIcons/AppIcon-Red.icon in Resources */ = {isa = PBXBuildFile; fileRef = 833C18922994DFA0CF84A891; };
+		308C829C8E0A5EEB432991A5 /* Currency/AppIcons/AppIcon-Teal.icon in Resources */ = {isa = PBXBuildFile; fileRef = 903231A4AA12470FCF511676; };
+		44354B31BB12AEE774EB24BB /* Currency/AppIcons/AppIcon-Yellow.icon in Resources */ = {isa = PBXBuildFile; fileRef = 84E85CB40E55A0AE1E589769; };
+		002A8EEFA6671160C86D65AB /* Currency/Appearance.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0E97ADDDA9880A35A6402A84; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -99,6 +116,22 @@
 		A11CE0000000000000000105 /* CurrencyTests/MentalMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyTests/MentalMathTests.swift; sourceTree = "<group>"; };
 		A11CE0000000000000000201 /* Currency/Resources/Fonts/PatrickHand-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Currency/Resources/Fonts/PatrickHand-Regular.ttf; sourceTree = "<group>"; };
 		A11CE0000000000000000203 /* Currency/Resources/Fonts/PatrickHand-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Currency/Resources/Fonts/PatrickHand-OFL.txt; sourceTree = "<group>"; };
+		E485F860207204CAFF5ADD3B /* Shared/AppAccent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shared/AppAccent.swift; sourceTree = "<group>"; };
+		5C349712CF91C3308BD1FA7E /* Currency/AppearanceSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Currency/AppearanceSettingsView.swift; sourceTree = "<group>"; };
+		D9346EB1F0F433DB0F3A88C3 /* Currency/AppIcons/AppIcon-Blue.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Blue.icon"; sourceTree = "<group>"; };
+		B7DEE79AB6782C056113BDB2 /* Currency/AppIcons/AppIcon-Brown.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Brown.icon"; sourceTree = "<group>"; };
+		DF3952B0313976BE20BF993F /* Currency/AppIcons/AppIcon-Cyan.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Cyan.icon"; sourceTree = "<group>"; };
+		11A27B64FD2D83EA9DB27A50 /* Currency/AppIcons/AppIcon-Gray.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Gray.icon"; sourceTree = "<group>"; };
+		BCE1B435D0CD566E8EEA3B8D /* Currency/AppIcons/AppIcon-Green.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Green.icon"; sourceTree = "<group>"; };
+		51F9AB523E5FC6242A91BC37 /* Currency/AppIcons/AppIcon-Indigo.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Indigo.icon"; sourceTree = "<group>"; };
+		0818824B66982859DD776F45 /* Currency/AppIcons/AppIcon-Mint.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Mint.icon"; sourceTree = "<group>"; };
+		3A316232438512147EA98BD2 /* Currency/AppIcons/AppIcon-Orange.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Orange.icon"; sourceTree = "<group>"; };
+		1C238A76BBC4D96CBB6AF795 /* Currency/AppIcons/AppIcon-Pink.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Pink.icon"; sourceTree = "<group>"; };
+		D2F0416639CC58F7A8072740 /* Currency/AppIcons/AppIcon-Purple.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Purple.icon"; sourceTree = "<group>"; };
+		833C18922994DFA0CF84A891 /* Currency/AppIcons/AppIcon-Red.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Red.icon"; sourceTree = "<group>"; };
+		903231A4AA12470FCF511676 /* Currency/AppIcons/AppIcon-Teal.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Teal.icon"; sourceTree = "<group>"; };
+		84E85CB40E55A0AE1E589769 /* Currency/AppIcons/AppIcon-Yellow.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = "Currency/AppIcons/AppIcon-Yellow.icon"; sourceTree = "<group>"; };
+		0E97ADDDA9880A35A6402A84 /* Currency/Appearance.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Currency/Appearance.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -148,6 +181,22 @@
 				9BC85F25E1D3480ED1222AF5 /* CurrencyWidget/CurrencyWidget.swift */,
 				CBD93AF3273110E13868B935 /* CurrencyTests/FrankfurterTests.swift */,
 				4AA65EADA4CD9869279060C7 /* Shared/Assets.xcassets */,
+				E485F860207204CAFF5ADD3B /* Shared/AppAccent.swift */,
+				5C349712CF91C3308BD1FA7E /* Currency/AppearanceSettingsView.swift */,
+				D9346EB1F0F433DB0F3A88C3 /* Currency/AppIcons/AppIcon-Blue.icon */,
+				B7DEE79AB6782C056113BDB2 /* Currency/AppIcons/AppIcon-Brown.icon */,
+				DF3952B0313976BE20BF993F /* Currency/AppIcons/AppIcon-Cyan.icon */,
+				11A27B64FD2D83EA9DB27A50 /* Currency/AppIcons/AppIcon-Gray.icon */,
+				BCE1B435D0CD566E8EEA3B8D /* Currency/AppIcons/AppIcon-Green.icon */,
+				51F9AB523E5FC6242A91BC37 /* Currency/AppIcons/AppIcon-Indigo.icon */,
+				0818824B66982859DD776F45 /* Currency/AppIcons/AppIcon-Mint.icon */,
+				3A316232438512147EA98BD2 /* Currency/AppIcons/AppIcon-Orange.icon */,
+				1C238A76BBC4D96CBB6AF795 /* Currency/AppIcons/AppIcon-Pink.icon */,
+				D2F0416639CC58F7A8072740 /* Currency/AppIcons/AppIcon-Purple.icon */,
+				833C18922994DFA0CF84A891 /* Currency/AppIcons/AppIcon-Red.icon */,
+				903231A4AA12470FCF511676 /* Currency/AppIcons/AppIcon-Teal.icon */,
+				84E85CB40E55A0AE1E589769 /* Currency/AppIcons/AppIcon-Yellow.icon */,
+				0E97ADDDA9880A35A6402A84 /* Currency/Appearance.xcassets */,
 				4800CF65853849989BEAEE2A /* Currency/AppIcon.icon */,
 				1D5B638D00994FD4BB4EB730 /* Shared/Localizable.xcstrings */,
 				C7FD98A382C94B41A37CD612 /* Shared/InfoPlist.xcstrings */,
@@ -287,6 +336,20 @@
 				A11CE0000000000000000204 /* Currency/Resources/Fonts/PatrickHand-OFL.txt in Resources */,
 				A11CE0000000000000000202 /* Currency/Resources/Fonts/PatrickHand-Regular.ttf in Resources */,
 				AA400DFD4219F700A8EA7668 /* Shared/Assets.xcassets in Resources */,
+				814C957F5696F2A57B2264A7 /* Currency/AppIcons/AppIcon-Blue.icon in Resources */,
+				2DBE542F5832CCC2B16D416D /* Currency/AppIcons/AppIcon-Brown.icon in Resources */,
+				3370D00587FA39029BF3CDB6 /* Currency/AppIcons/AppIcon-Cyan.icon in Resources */,
+				B27823010E4C4292AA0D803C /* Currency/AppIcons/AppIcon-Gray.icon in Resources */,
+				A3381B1173852C2AE657F452 /* Currency/AppIcons/AppIcon-Green.icon in Resources */,
+				4B4293CF3AC3CAA4508AA5A2 /* Currency/AppIcons/AppIcon-Indigo.icon in Resources */,
+				04C09175C668426D634AA681 /* Currency/AppIcons/AppIcon-Mint.icon in Resources */,
+				5F2F189640BDF00BB7795492 /* Currency/AppIcons/AppIcon-Orange.icon in Resources */,
+				EACA79C4DFE8A6FBF9F0064E /* Currency/AppIcons/AppIcon-Pink.icon in Resources */,
+				A8ABCA8DF7482713BE907715 /* Currency/AppIcons/AppIcon-Purple.icon in Resources */,
+				49A3559307D21F091558C4B7 /* Currency/AppIcons/AppIcon-Red.icon in Resources */,
+				308C829C8E0A5EEB432991A5 /* Currency/AppIcons/AppIcon-Teal.icon in Resources */,
+				44354B31BB12AEE774EB24BB /* Currency/AppIcons/AppIcon-Yellow.icon in Resources */,
+				002A8EEFA6671160C86D65AB /* Currency/Appearance.xcassets in Resources */,
 				6BC6E351F65845E595B5F07A /* Currency/AppIcon.icon in Resources */,
 				9A5B8380DAEA42D9BDB18410 /* Shared/Localizable.xcstrings in Resources */,
 				CD5BD8C059B840908A2051A0 /* Shared/InfoPlist.xcstrings in Resources */,
@@ -311,6 +374,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6951708FFBB86F0ECAAC022F /* Shared/AppAccent.swift in Sources */,
+				9C46CDE14183705B827CC043 /* Currency/AppearanceSettingsView.swift in Sources */,
 				A11CE0000000000000000104 /* Currency/MentalConversionView.swift in Sources */,
 				A11CE0000000000000000102 /* Currency/MentalMath.swift in Sources */,
 				E54D0C275D844F21896B3610 /* Currency/ScreenshotSupport.swift in Sources */,
@@ -330,6 +395,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F827A7619C150AEF5D00093F /* Shared/ConversionSettings.swift in Sources */,
+				F9801E0DE0124725C56C7D55 /* Shared/AppAccent.swift in Sources */,
 				8C9B115582515B423535FDFC /* CurrencyWidget/CurrencyWidget.swift in Sources */,
 				8AD0FA3746A508C1D4C18F64 /* Shared/CurrencyModels.swift in Sources */,
 				88E81DB1E6D63487F0A3AD3E /* Shared/FrankfurterClient.swift in Sources */,
@@ -367,6 +433,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = ("AppIcon-Blue", "AppIcon-Brown", "AppIcon-Cyan", "AppIcon-Gray", "AppIcon-Green", "AppIcon-Indigo", "AppIcon-Mint", "AppIcon-Orange", "AppIcon-Pink", "AppIcon-Purple", "AppIcon-Red", "AppIcon-Teal", "AppIcon-Yellow");
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Currency/Currency.entitlements;
 				CODE_SIGN_STYLE = Automatic;
@@ -524,6 +591,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_ALTERNATE_APPICON_NAMES = ("AppIcon-Blue", "AppIcon-Brown", "AppIcon-Cyan", "AppIcon-Gray", "AppIcon-Green", "AppIcon-Indigo", "AppIcon-Mint", "AppIcon-Orange", "AppIcon-Pink", "AppIcon-Purple", "AppIcon-Red", "AppIcon-Teal", "AppIcon-Yellow");
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = Currency/Currency.entitlements;
 				CODE_SIGN_STYLE = Automatic;

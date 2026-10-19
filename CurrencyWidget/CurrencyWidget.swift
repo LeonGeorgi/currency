@@ -7,6 +7,7 @@ struct ExchangeEntry: TimelineEntry, Sendable {
     let quotes: [QuoteSnapshot]
     var amount: Double? = 1
     var isPreview = false
+    var accent: AppAccent = .original
     var isOffline: Bool { quotes.contains(where: \.isOffline) }
 
     static let preview = ExchangeEntry(date: .now,
@@ -26,7 +27,7 @@ struct ExchangeProvider: TimelineProvider {
             let quotes = selection.quotes.map { quote in
                 QuoteSnapshot(quote: quote, rate: RateCache.shared.latest(for: CurrencyPair(base: selection.base, quote: quote)), isOffline: false)
             }
-            completion(ExchangeEntry(date: .now, selection: selection, quotes: quotes, amount: settings.amount))
+            completion(ExchangeEntry(date: .now, selection: selection, quotes: quotes, amount: settings.amount, accent: settings.accent))
             return
         }
         Task { completion(await entry()) }
@@ -46,7 +47,7 @@ struct ExchangeProvider: TimelineProvider {
         }
         let selection = settings.widgetSelection
         let quotes = await FrankfurterClient().latest(for: selection)
-        return ExchangeEntry(date: .now, selection: selection, quotes: quotes, amount: settings.amount)
+        return ExchangeEntry(date: .now, selection: selection, quotes: quotes, amount: settings.amount, accent: settings.accent)
     }
 }
 
@@ -77,7 +78,7 @@ struct ExchangeWidgetView: View {
                 }
             }
         }
-        .tint(Color("AccentColor"))
+        .tint(entry.accent.color)
         .containerBackground(Color(uiColor: .systemGroupedBackground), for: .widget)
         .widgetURL(URL(string: "currency://open")!)
     }
@@ -85,7 +86,7 @@ struct ExchangeWidgetView: View {
     private func sourceAmount(_ amount: Double, large: Bool) -> some View {
         VStack(alignment: .leading, spacing: large ? 8 : 3) {
             Text(verbatim: "\(CurrencyDisplay.flag(for: entry.selection.base)) \(entry.selection.base)")
-                .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+                .font(.caption.weight(.semibold)).foregroundStyle(entry.accent.color)
                 .lineLimit(1)
             Text(CurrencyDisplay.amount(amount, code: entry.selection.base))
                 .font(.system(size: large ? 34 : 26, weight: .medium, design: .rounded))

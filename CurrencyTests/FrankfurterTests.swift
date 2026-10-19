@@ -1,7 +1,38 @@
 import XCTest
+import UIKit
 @testable import Currency
 
 final class FrankfurterTests: XCTestCase {
+    func testAppearanceSettingsKeepLegacySnapshotsAndUnknownColorsReadable() throws {
+        let legacy = Data(#"{"selection":{"base":"EUR","quotes":["JPY"]},"amount":50}"#.utf8)
+        XCTAssertEqual(try JSONDecoder().decode(ConversionSettings.self, from: legacy).accent, .original)
+        let future = Data(#"{"selection":{"base":"EUR","quotes":["JPY"]},"amount":50,"accent":"future-color"}"#.utf8)
+        XCTAssertEqual(try JSONDecoder().decode(ConversionSettings.self, from: future).accent, .original)
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let shared = SharedConversionStore(url: directory.appendingPathComponent("settings.json"))
+        let settings = ConversionSettings(selection: CurrencySelection(base: "JPY", quotes: ["EUR", "USD"]), amount: 500, accent: .blue)
+        XCTAssertTrue(shared.save(settings))
+        XCTAssertEqual(shared.load(), settings)
+        XCTAssertEqual(shared.load()?.accent, .blue)
+    }
+
+    func testAllAccentChoicesHaveIconsInTheBuiltAppForBothDevices() throws {
+        XCTAssertNil(AppAccent.original.iconName)
+        let names = AppAccent.allCases.compactMap(\.iconName)
+        XCTAssertEqual(Set(names).count, names.count)
+        for accent in AppAccent.allCases {
+            XCTAssertNotNil(UIImage(named: accent.previewName))
+        }
+        let data = try Data(contentsOf: Bundle.main.bundleURL.appendingPathComponent("Info.plist"))
+        let info = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+        for key in ["CFBundleIcons", "CFBundleIcons~ipad"] {
+            let icons = try XCTUnwrap(info[key] as? [String: Any])
+            let alternates = try XCTUnwrap(icons["CFBundleAlternateIcons"] as? [String: Any])
+            XCTAssertEqual(Set(alternates.keys), Set(names))
+        }
+    }
+
     func testAmountPresetsUseOneTwoFiveAtCurrencyAppropriateScales() {
         XCTAssertEqual(ConversionAmount.presets(for: "EUR", unitsPerEuro: 1), [1, 2, 5, 10, 20, 50, 100, 200])
         XCTAssertEqual(ConversionAmount.presets(for: "JPY", unitsPerEuro: 164.48), [100, 200, 500, 1000, 2000, 5000, 10000, 20000])

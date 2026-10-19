@@ -6,10 +6,20 @@ struct CurrencyApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ThemedContentView()
                 .defaultAppStorage(ScreenshotSupport.defaults)
                 .preferredColorScheme(ScreenshotSupport.colorScheme)
-                .tint(Color("AccentColor"))
         }
+    }
+}
+
+private struct ThemedContentView: View {
+    @AppStorage("accentColor") private var storedAccent = AppAccent.original.rawValue
+
+    var body: some View {
+        let accent = AppAccent(rawValue: storedAccent) ?? .original
+        ContentView()
+            .environment(\.appAccent, accent)
+            .tint(accent.color)
     }
 }
