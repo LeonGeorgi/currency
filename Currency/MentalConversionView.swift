@@ -165,26 +165,32 @@ private struct MentalCalculationFlow: View {
     }
 }
 
-/// Slightly uneven, deterministic pen curves stay stable across redraws.
+/// A single pen stroke with a small, open arrowhead aligned to the curve.
 private struct ScribbleCalculationArrow: Shape {
     var variation: Int
 
     func path(in rect: CGRect) -> Path {
-        let bend = CGFloat(variation.isMultiple(of: 2) ? 0.96 : 1.05)
-        let middle = CGPoint(x: rect.width * 0.80 * bend, y: rect.height * 0.49)
-        let tip = CGPoint(x: 0.5, y: rect.height - 2)
+        let bend = CGFloat(variation.isMultiple(of: 2) ? 0.94 : 1.0)
+        let tip = CGPoint(x: 2, y: rect.height - 4)
+        let control = CGPoint(x: rect.width * bend, y: rect.height * 0.66)
+        let dx = control.x - tip.x
+        let dy = control.y - tip.y
+        let length = hypot(dx, dy)
+        let backwards = CGVector(dx: dx / length, dy: dy / length)
+        let headLength = min(rect.height * 0.17, 7)
+        let headWidth = headLength * 0.48
+        let upperWing = CGPoint(x: tip.x + backwards.dx * headLength + backwards.dy * headWidth,
+                                y: tip.y + backwards.dy * headLength - backwards.dx * headWidth)
+        let outerWing = CGPoint(x: tip.x + backwards.dx * headLength - backwards.dy * headWidth,
+                                y: tip.y + backwards.dy * headLength + backwards.dx * headWidth)
         var path = Path()
-        path.move(to: CGPoint(x: 1.5, y: 2))
-        path.addCurve(to: middle,
-                      control1: CGPoint(x: rect.width * 0.50, y: rect.height * 0.13),
-                      control2: CGPoint(x: rect.width * 0.88 * bend, y: rect.height * 0.29))
+        path.move(to: CGPoint(x: 2, y: 4))
         path.addCurve(to: tip,
-                      control1: CGPoint(x: rect.width * 0.86 * bend, y: rect.height * 0.71),
-                      control2: CGPoint(x: rect.width * 0.46, y: rect.height * 0.88))
-        path.move(to: CGPoint(x: tip.x + 1, y: tip.y - 6.5))
-        path.addQuadCurve(to: tip, control: CGPoint(x: tip.x + 0.2, y: tip.y - 3))
-        path.addQuadCurve(to: CGPoint(x: tip.x + 7, y: tip.y - 0.8),
-                          control: CGPoint(x: tip.x + 4, y: tip.y - 1.5))
+                      control1: CGPoint(x: rect.width * bend, y: rect.height * 0.24),
+                      control2: control)
+        path.move(to: upperWing)
+        path.addLine(to: tip)
+        path.addLine(to: outerWing)
         return path
     }
 }
