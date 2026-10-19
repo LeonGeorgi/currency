@@ -26,15 +26,26 @@ struct MentalCardStep: Equatable, Sendable {
             formatter.numberStyle = .spellOut
             return formatter.string(from: NSNumber(value: value)) ?? value.formatted()
         }
+        func decimalShift(_ n: Int, multiplying: Bool) -> String? {
+            guard MentalRule.Operation.isDecimalShift(n) else { return nil }
+            let places = String(n).count - 1
+            if places == 1 {
+                return multiplying ? String(localized: "Komma 1 Stelle →") : String(localized: "Komma 1 Stelle ←")
+            }
+            return multiplying ? String(localized: "Komma \(places.formatted()) Stellen →") : String(localized: "Komma \(places.formatted()) Stellen ←")
+        }
+        func multiplication(_ n: Int) -> String {
+            decimalShift(n, multiplying: true) ?? (n == 2 ? String(localized: "Verdoppeln") : String(localized: "Mal \(word(n))"))
+        }
         if rule.operations.isEmpty {
             return [Self(symbol: "≈", instruction: String(localized: "Ungefähr gleich"))]
         }
         return rule.operations.flatMap { operation -> [Self] in
             switch operation {
             case .multiply(let n):
-                return [Self(symbol: "×\(n.formatted())", instruction: n == 2 ? String(localized: "Verdoppeln") : String(localized: "Mal \(word(n))"))]
+                return [Self(symbol: "×\(n.formatted())", instruction: multiplication(n))]
             case .divide(let n):
-                let instruction = n == 2 ? String(localized: "Halbieren") : n == 4 ? String(localized: "Ein Viertel nehmen") : String(localized: "Durch \(word(n)) teilen")
+                let instruction = decimalShift(n, multiplying: false) ?? (n == 2 ? String(localized: "Halbieren") : n == 4 ? String(localized: "Ein Viertel nehmen") : String(localized: "Durch \(word(n)) teilen"))
                 return [Self(symbol: n == 4 ? "×¼" : "÷\(n.formatted())", instruction: instruction)]
             case .percent(let p):
                 return [Self(symbol: "\(p < 0 ? "−" : "+")\(abs(p))%", instruction: p < 0 ? String(localized: "\(word(abs(p))) Prozent abziehen") : String(localized: "\(word(abs(p))) Prozent dazu"))]
@@ -43,7 +54,7 @@ struct MentalCardStep: Equatable, Sendable {
             case .compensate(let n):
                 let power = n == 3 ? 2 : n < 20 ? 10 : 100
                 return [
-                    Self(symbol: "×\(power)", instruction: String(localized: "Zahl merken, dann mal \(word(power))")),
+                    Self(symbol: "×\(power)", instruction: String(localized: "Merken. \(multiplication(power))")),
                     Self(symbol: "\(n > power ? "+" : "−") \(String(localized: "Start"))", instruction: n > power ? String(localized: "Gemerkte Zahl addieren") : String(localized: "Gemerkte Zahl abziehen"))
                 ]
             }
