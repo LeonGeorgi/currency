@@ -197,18 +197,51 @@ struct ContentView: View {
             .accessibilityLabel("Von: \(base). Währung auswählen")
 
             VStack(spacing: 6) {
-                TextField("Betrag", value: $amount, format: .currency(code: base))
-                    .font(.system(size: amountFontSize, weight: .medium, design: .rounded))
-                    .monospacedDigit()
-                    .multilineTextAlignment(.center)
-                    .keyboardType(.decimalPad)
-                    .focused($editingAmount)
-                    .minimumScaleFactor(0.4)
-                    .lineLimit(1)
-                    .accessibilityLabel("Betrag in \(base)")
+                ZStack {
+                    TextField("Betrag", value: $amount, format: .number.grouping(.never).precision(.significantDigits(1...16)))
+                        .multilineTextAlignment(.center)
+                        .keyboardType(.decimalPad)
+                        .focused($editingAmount)
+                        .opacity(editingAmount ? 1 : 0)
+                        .accessibilityHidden(!editingAmount)
+                        .accessibilityLabel("Betrag in \(base)")
+                        .accessibilityIdentifier("amount-input")
+                    Button {
+                        editingAmount = true
+                    } label: {
+                        HStack(spacing: 8) {
+                            // Balance the pencil's width so the amount itself stays centered.
+                            Image(systemName: "pencil")
+                                .font(.body.weight(.medium))
+                                .hidden()
+                                .accessibilityHidden(true)
+                            Text(CurrencyDisplay.amount(amount, code: base))
+                                .foregroundStyle(Color.primary)
+                            Image(systemName: "pencil")
+                                .font(.body.weight(.medium))
+                                .foregroundStyle(.tint)
+                                .accessibilityHidden(true)
+                        }
+                        .frame(minHeight: 44)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Betrag bearbeiten")
+                    .accessibilityValue(CurrencyDisplay.amount(amount, code: base))
+                    .accessibilityIdentifier("edit-amount")
+                    .opacity(editingAmount ? 0 : 1)
+                    .allowsHitTesting(!editingAmount)
+                    .accessibilityHidden(editingAmount)
+                }
+                .frame(minHeight: 44)
+                .font(.system(size: amountFontSize, weight: .medium, design: .rounded))
+                .monospacedDigit()
+                .minimumScaleFactor(0.4)
+                .lineLimit(1)
                 Text(currencyName(base)).font(.subheadline).foregroundStyle(.secondary)
             }
         }
+        .frame(maxWidth: .infinity)
         .padding(.top, 20)
         .padding(.bottom, 12)
     }

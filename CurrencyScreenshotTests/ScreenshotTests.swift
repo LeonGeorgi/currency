@@ -142,6 +142,43 @@ final class ScreenshotTests: XCTestCase {
         app.terminate()
     }
 
+    func testAmountEditingWithoutGrouping() {
+        continueAfterFailure = false
+        for (language, locale, input, formatted, done) in [
+            ("de", "de_DE", "1234,56", "1.234,56 €", "Fertig"),
+            ("en", "en_US", "1234.56", "€1,234.56", "Done")
+        ] {
+            let app = XCUIApplication()
+            app.launchArguments = ["--screenshots", "-AppleLanguages", "(\(language))", "-AppleLocale", locale]
+            app.launch()
+            waitForRates(in: app)
+            let edit = app.buttons["edit-amount"]
+            edit.tap()
+            let field = app.textFields["amount-input"]
+            XCTAssertTrue(field.waitForExistence(timeout: 5))
+            XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 5))
+            XCTAssertEqual(field.value as? String, "100")
+            field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: 3) + input)
+            let entered = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", input), object: field)
+            XCTAssertEqual(XCTWaiter.wait(for: [entered], timeout: 5), .completed)
+            capture("amount-editing-\(language)")
+            app.buttons[done].tap()
+            XCTAssertTrue(edit.waitForExistence(timeout: 5))
+            XCTAssertEqual((edit.value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), formatted)
+            capture("amount-formatted-\(language)")
+            edit.tap()
+            XCTAssertTrue(field.waitForExistence(timeout: 5))
+            XCTAssertEqual(field.value as? String, input)
+            app.buttons[done].tap()
+            app.terminate()
+            app.launchArguments.append("--keep-screenshot-settings")
+            app.launch()
+            XCTAssertTrue(edit.waitForExistence(timeout: 5))
+            XCTAssertEqual((edit.value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), formatted)
+            app.terminate()
+        }
+    }
+
     func testAmountPresets() {
         let app = XCUIApplication()
         app.launchArguments = ["--screenshots", "-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]
@@ -153,7 +190,7 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(twenty.waitForExistence(timeout: 5))
         twenty.tap()
         XCTAssertTrue(twenty.isSelected)
-        XCTAssertEqual((app.textFields.firstMatch.value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), "20,00 €")
+        XCTAssertEqual((app.buttons["edit-amount"].value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), "20,00 €")
         XCTAssertTrue(app.buttons["comparison-JPY"].label.contains("3.290"))
         let amountStrip = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         amountStrip.name = "amount-presets-liquid-glass"
@@ -181,7 +218,7 @@ final class ScreenshotTests: XCTestCase {
         }
         hundred.tap()
         XCTAssertTrue(hundred.isSelected)
-        XCTAssertEqual((app.textFields.firstMatch.value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), "100 ¥")
+        XCTAssertEqual((app.buttons["edit-amount"].value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), "100 ¥")
         XCTAssertTrue(app.buttons["amount-preset-500.0"].exists)
         XCTAssertFalse(app.buttons["amount-preset-1.0"].exists)
         app.terminate()
