@@ -66,6 +66,7 @@ struct MentalRule: Codable, Hashable, Sendable {
     struct Step: Equatable, Sendable {
         let calculation: Calculation
         let value: Double
+        let isApproximate: Bool
     }
 
     let operations: [Operation]
@@ -85,8 +86,23 @@ struct MentalRule: Codable, Hashable, Sendable {
         operations.filter { if case .percent = $0 { true } else { false } }.count <= 1
     }
 
-    func trace(amount: Double) -> [Step] {
+    /// Keep examples compact without rounding small currency amounts down to zero.
+    static func roundedForMentalMath(_ value: Double) -> Double {
+        guard value.isFinite, value != 0 else { return value }
+        let exponent = floor(log10(abs(value)))
+        for digits in 1...3 {
+            let unit = pow(10, exponent - Double(digits) + 1)
+            guard unit.isFinite, unit > 0 else { continue }
+            let rounded = (value / unit).rounded() * unit
+            guard rounded.isFinite, rounded != 0 else { continue }
+            if digits == 3 || abs(rounded / value - 1) <= 0.01 + 1e-12 { return rounded }
+        }
+        return value
+    }
+
+    func trace(amount: Double, roundingForMentalMath: Bool = false) -> [Step] {
         var value = amount
+        var isApproximate = false
         var result: [Step] = []
         for operation in operations {
             let calculations: [Calculation]
@@ -95,13 +111,16 @@ struct MentalRule: Codable, Hashable, Sendable {
             case .divide(let n): calculations = [.divide(n)]
             case .percent(let p): calculations = [.percent(p)]
             case .compensate(let n):
-                let saved = value
+                let saved = roundingForMentalMath ? Self.roundedForMentalMath(value) : value
+                isApproximate = isApproximate || abs(saved - value) > abs(value) * 1e-12
                 let power = n == 3 ? 2 : n < 20 ? 10 : 100
                 calculations = [.multiply(power), n > power ? .add(saved) : .subtract(saved)]
             }
             for calculation in calculations {
-                value = calculation.apply(to: value)
-                result.append(Step(calculation: calculation, value: value))
+                let calculated = calculation.apply(to: value)
+                value = roundingForMentalMath ? Self.roundedForMentalMath(calculated) : calculated
+                isApproximate = isApproximate || abs(value - calculated) > abs(calculated) * 1e-12
+                result.append(Step(calculation: calculation, value: value, isApproximate: isApproximate))
             }
         }
         return result

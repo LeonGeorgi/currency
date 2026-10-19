@@ -2,6 +2,34 @@ import XCTest
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testRoundedExampleUsesEachDisplayedResultForTheNextStep() {
+        let rule = MentalRule(operations: [.multiply(2), .multiply(100), .percent(-10)])
+        let steps = rule.trace(amount: 19.99, roundingForMentalMath: true)
+        XCTAssertEqual(steps.map(\.value), [40, 4000, 3600])
+        XCTAssertTrue(steps.allSatisfy(\.isApproximate))
+        XCTAssertEqual(rule.trace(amount: 19.99).last!.value, 3598.2, accuracy: 1e-10)
+        XCTAssertTrue(rule.trace(amount: 100, roundingForMentalMath: true).allSatisfy { !$0.isApproximate })
+    }
+
+    func testMentalRoundingScalesWithTheAmount() {
+        for (input, expected) in [(39.98, 40.0), (43.75, 44), (1234, 1230), (9999, 10000), (0.01999, 0.02), (-43.75, -44), (0, 0)] {
+            XCTAssertEqual(MentalRule.roundedForMentalMath(input), expected, accuracy: max(abs(expected), 1e-10) * 1e-12)
+        }
+        for amount in [1e-8, 0.0001234, 0.1234, 12.34, 1234, 1234567] {
+            let rounded = MentalRule.roundedForMentalMath(amount)
+            XCTAssertGreaterThan(rounded, 0)
+            XCTAssertLessThanOrEqual(abs(rounded / amount - 1), 0.01 + 1e-12)
+        }
+    }
+
+    func testRoundedCompensationAlsoUsesASimpleSavedAmount() {
+        let rule = MentalRule(operations: [.compensate(9)])
+        let steps = rule.trace(amount: 19.99, roundingForMentalMath: true)
+        XCTAssertEqual(steps.map(\.value), [200, 180])
+        XCTAssertEqual(steps.last?.calculation, .subtract(20))
+        XCTAssertTrue(steps.allSatisfy(\.isApproximate))
+    }
+
     func testWorkedExampleAndExactCounterRule() {
         let rule = MentalRule(operations: [.multiply(2), .multiply(100), .percent(-10)])
         XCTAssertEqual(rule.trace(amount: 20).map(\.value), [40, 4000, 3600])

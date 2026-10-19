@@ -56,8 +56,12 @@ private struct MentalCalculationFlow: View {
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    private var steps: [MentalRule.Step] { rule.trace(amount: amount) }
+    private var steps: [MentalRule.Step] { rule.trace(amount: amount, roundingForMentalMath: true) }
     private var values: [Double] { [amount] + steps.map(\.value) }
+
+    private func isApproximate(at index: Int) -> Bool {
+        index > 0 && (index == values.count - 1 || steps[index - 1].isApproximate)
+    }
 
     var body: some View {
         Group {
@@ -79,7 +83,7 @@ private struct MentalCalculationFlow: View {
             Grid(horizontalSpacing: 5, verticalSpacing: gap) {
                 ForEach(values.indices, id: \.self) { index in
                     GridRow(alignment: .firstTextBaseline) {
-                        Text(index == values.count - 1 ? "≈" : "")
+                        Text(isApproximate(at: index) ? "≈" : "")
                             .frame(height: valueHeight)
                         Text(values[index].formatted(.number.precision(.significantDigits(1...12))))
                             .gridColumnAlignment(.trailing)
@@ -146,8 +150,8 @@ private struct MentalCalculationFlow: View {
     private func value(at index: Int) -> String {
         let value = values[index]
         if index == 0 { return CurrencyDisplay.amount(value, code: from) }
-        if index == values.count - 1 { return "≈ " + CurrencyDisplay.amount(value, code: to) }
-        return value.formatted(.number.precision(.significantDigits(1...12)))
+        let formatted = index == values.count - 1 ? CurrencyDisplay.amount(value, code: to) : value.formatted(.number.precision(.significantDigits(1...12)))
+        return (isApproximate(at: index) ? "≈ " : "") + formatted
     }
     private func operation(_ calculation: MentalRule.Calculation) -> String {
         func number(_ value: Double) -> String { value.formatted(.number.precision(.significantDigits(1...12))) }
