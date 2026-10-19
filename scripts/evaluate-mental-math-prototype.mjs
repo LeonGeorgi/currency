@@ -12,8 +12,8 @@ vm.runInContext(html.match(/<script id="mental-math-core">([\s\S]*?)<\/script>/)
 const math=context.math;
 const fixture=JSON.parse(html.match(/<script id="rate-fixture" type="application\/json">([\s\S]*?)<\/script>/)[1]);
 const rates={EUR:1,...fixture.rates};
-const result={source:'https://api.frankfurter.dev/v1/latest?base=EUR',date:fixture.date,stats:math.stats,examples:[],benchmarks:[]};
-const summarize=rule=>rule?{rule:math.explain(rule),factor:rule.factor,errorPercent:rule.error*100,effort:rule.effort,primitiveSteps:rule.primitiveSteps,retained:rule.retained,steps:math.trace(rule,1).length,mentalSteps:rule.mentalSteps}:null;
+const result={source:'https://api.frankfurter.dev/v1/latest?base=EUR',date:fixture.date,stats:math.stats,weights:math.weights,examples:[],benchmarks:[]};
+const summarize=rule=>rule?{rule:math.explain(rule),factor:rule.factor,errorPercent:rule.error*100,effort:math.difficulty(rule).score,difficulty:math.difficulty(rule),primitiveSteps:rule.primitiveSteps,retained:rule.retained,steps:math.trace(rule,1).length,mentalSteps:rule.mentalSteps}:null;
 const coins=['JPY','USD','GBP','CHF','CNY','INR','KRW','SEK','THB','TRY','IDR','AUD'];
 for(const quote of coins)for(const [from,to,amount] of [['EUR',quote,20],[quote,'EUR',1000]]){
   const rate=rates[to]/rates[from];
@@ -83,6 +83,13 @@ for(const {rate} of [...pairs,...[1,180,1/180,1e-8,1e8].map(rate=>({rate}))]){
   for(const rule of [math.adaptive(rate,.02),math.recommend(rate,.01)]){
     if(!rule)continue;
     const inverse=math.inverse(rule,1/rate);
+    for(const candidate of [rule,inverse]){
+      const rating=math.difficulty(candidate);
+      assert.ok(Number.isFinite(rating.score)&&rating.score>=0,'Every rule and inverse must have a finite difficulty');
+      assert.equal(rating.score,rating.operationScore+rating.memoryScore);
+      assert.equal(rating.score,rating.breakdown.reduce((sum,step)=>sum+step.parts.reduce((subtotal,part)=>subtotal+part.points,0),0));
+      assert.equal(candidate.effort,rating.score,'Selection and displayed difficulty must use the same weights');
+    }
     inverseRules++;
     assert.equal(inverse.numerator,rule.denominator);
     assert.equal(inverse.denominator,rule.numerator);
@@ -106,7 +113,7 @@ assert.ok(math.inverse(math.adaptive(7.524,.02),1/7.524),'Every forward rule sti
 result.directMultipliers=[];
 for(let factor=3;factor<=10;factor++){
   const direct=factor===10?math.recommend(10,0):math.operations.find(step=>step.direct&&step.n===factor);
-  const rule=factor===10?direct:{factor,numerator:factor,denominator:1,steps:[direct],effort:direct.difficulty,primitiveSteps:1,retained:1,error:0};
+  const rule=factor===10?direct:{factor,numerator:factor,denominator:1,steps:[direct],effort:math.difficulty({steps:[direct]}).score,primitiveSteps:1,retained:1,error:0};
   assert.ok(direct,`Direct ×${factor} must exist`);
   assert.equal(math.trace(rule,19.99).at(-1).value,19.99*factor);
   const inverse=math.inverse(rule,1/factor);
@@ -131,6 +138,16 @@ for(const [label,factor] of [['×5',5],['÷5',.2],['×25',25],['÷25',.04],['×5
 assert.equal(math.explain(math.recommend(5,0)),'halve → ×10');
 assert.equal(math.explain(math.recommend(.2,0)),'×2 → ÷10');
 assert.equal(math.recommend(.5,0).primitiveSteps,1);
+const seven=math.recommend(7,0),sevenInverse=math.inverse(seven,1/7);
+assert.ok(math.difficulty(sevenInverse).score>math.difficulty(seven).score,'÷7 must be scored harder than ×7');
+assert.equal(math.difficulty(math.recommend(5,0)).score,2);
+assert.equal(math.difficulty({steps:[subtractTen]}).score,2.5);
+assert.equal(math.difficulty({steps:[]}).score,0);
+assert.equal(math.difficulty({steps:math.recommend(7,0).steps.concat(math.recommend(7,0).steps)}).score,4);
+result.difficultyExamples=[];
+for(const [label,rule] of [['Direct ×7',seven],['Direct ÷7',sevenInverse],['Direct ×5',{steps:[math.operations.find(step=>step.direct&&step.n===5)]}],['Halve then ×10',math.recommend(5,0)],['Subtract 10%',{steps:[subtractTen]}],['Undo subtracting 10%',math.inverse({factor:.9,numerator:9,denominator:10,steps:[subtractTen]},1/.9)],['Add 15%',{steps:[math.operations.find(step=>step.short==='+15%')]}]]){
+  result.difficultyExamples.push({label,instructions:math.explain(rule),...math.difficulty(rule)});
+}
 result.grid=[];
 for(const tolerance of [.01,.03]){
   let found=0,worstError=0,maxEffort=0;

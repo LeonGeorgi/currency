@@ -21,11 +21,45 @@
 </section>
 <section class="panel"><h2>Guided examples</h2><nav id="tabs" role="tablist"></nav><p id="scenario"></p><div id="steps"></div></section>
 <section class="panel"><h2>Familiar ways to do the same calculation</h2><p>These exact rewrites are used by the search, not just shown as tips. Halving and decimal shifts keep one running value. Compensation uses a saved value, which counts toward the memory estimate. This is a design preference, not a measured guarantee of faster calculation for everyone.</p><h3>Direct multiplication</h3><p>×3–×10 are allowed as direct instructions. Their effort weights are higher than doubling or shifting the decimal point. ×5 still favors halving then ×10. Division by 3, 6, 7, 8 or 9 is reserved for counter-rules; ÷4 uses two halvings and ÷5 uses doubling then ÷10.</p><div id="multipliers"></div><h3>Preferred methods and alternatives</h3><div id="strategies"></div></section>
-<details class="panel"><summary>What the search considers</summary><p>Doubling, halving, direct ×3–×10, decimal shifts, and compensation around 10 or 100 (×9, ×11, ×99, ×101). Decompositions remain available. ×5 prefers halving followed by ×10; shifts are merged and opposing doubles/halves cancel. Percentage corrections are built from halves and tenths; −50% is simply halving. No direct division by 3–9, sixths, eighths, or 12.5% shortcuts in the simple search. Division by 4 and 5 can still be performed through familiar decompositions. At most one percentage correction. The default cap is four instruction-level arithmetic actions, including decimal shifts. Effort is scored separately: doubling, halving and decimal shifts have weight 1; direct ×3, ×4 and ×6–×9 have weight 2; direct ×5 has weight 3 so its two-action decomposition remains preferred. These weights are uncalibrated preferences, not times. A 25% correction counts as two halvings plus addition/subtraction; a 15% correction has four actions and three retained values. Compact labels do not count as single effortless operations.</p><p>The default targets 2% error and may accept up to 3% when it lowers the estimated effort score. No independently simple rule is returned when that limit cannot be met with the conservative vocabulary and work budget. Every found rule also gets its exact inverse: reverse the step order and undo each operation. Inverses are shown even outside that vocabulary or error limit, without assigning an uncalibrated difficulty score. Adding 10% does not undo subtracting 10%; multiplying by 10 and then dividing by 9 does. The inverse undoes the approximate rule, not the market conversion, so its market error is calculated separately. Percentages apply to the current result. Do not round between steps.</p><p>The vocabulary and work counts are engineering choices informed by arithmetic research, not measured human response times. Actual difficulty still depends on the amount, carries, practice and individual skill. <a href="https://github.com/LeonGeorgi/currency/blob/main/docs/mental-arithmetic-evidence.md">Read the primary research note</a> for studies and limits.</p><p id="search-stats"></p></details>
+<details class="panel" open><summary>Difficulty weights · starting assumptions</summary><p>The score adds operation weights and 0.5 points for each extra retained value per subcalculation. A lower score means this model expects less effort. These are relative preferences, not seconds, probabilities, or a validated easy/hard scale. The current model does not adjust for the amount, digit count or carries.</p><div id="weights"></div></details>
+<details class="panel"><summary>What the search considers</summary><p>Doubling, halving, direct ×3–×10, decimal shifts, and compensation around 10 or 100 (×9, ×11, ×99, ×101). Decompositions remain available. ×5 prefers halving followed by ×10; shifts are merged and opposing doubles/halves cancel. Percentage corrections are built from halves and tenths; −50% is simply halving. No direct division by 3–9, sixths, eighths, or 12.5% shortcuts in the simple search. Division by 4 and 5 can still be performed through familiar decompositions. At most one percentage correction. The default cap is four instruction-level arithmetic actions, including decimal shifts. Effort is scored separately: doubling, halving and decimal shifts have weight 1; direct ×3, ×4 and ×6–×9 have weight 2; direct ×5 has weight 3 so its two-action decomposition remains preferred. These weights are uncalibrated preferences, not times. A 25% correction counts as two halvings plus addition/subtraction, plus 0.5 points for retaining the input. A 15% correction has four arithmetic actions and two extra retained values, adding 1 memory point. Compact labels do not count as single effortless operations.</p><p>The default targets 2% error and may accept up to 3% when it lowers the estimated effort score. No independently simple rule is returned when that limit cannot be met with the conservative vocabulary and work budget. Every found rule also gets its exact inverse: reverse the step order and undo each operation. Inverses are shown even outside that vocabulary or error limit. They now receive a score from the same heuristic model, with larger weights for difficult division. Adding 10% does not undo subtracting 10%; multiplying by 10 and then dividing by 9 does. The inverse undoes the approximate rule, not the market conversion, so its market error is calculated separately. Percentages apply to the current result. Do not round between steps.</p><p>The vocabulary and work counts are engineering choices informed by arithmetic research, not measured human response times. Actual difficulty still depends on the amount, carries, practice and individual skill. <a href="https://github.com/LeonGeorgi/currency/blob/main/docs/mental-arithmetic-evidence.md">Read the primary research note</a> for studies and limits.</p><p id="search-stats"></p></details>
 <script id="mental-math-core">
 const MentalMath = (() => {
   const gcd = (a,b) => b ? gcd(b,a%b) : a;
   const fraction = (n,d) => {const g=gcd(n,d);return [n/g,d/g];};
+  // Relative design weights, not predicted seconds or a validated human scale.
+  const weights=Object.freeze({
+    decimalShift:1,doubling:1,halving:1,addition:1,smallMultiply:2,multiplyFive:3,
+    divideFour:3,divideFive:4,divideThreeSix:5,divideSevenEightNine:6,
+    otherMultiply:4,otherDivide:7,extraRetainedValue:.5,
+  });
+  const weightLabels={decimalShift:'Decimal shift (×/÷10, 100, …)',doubling:'Double',halving:'Halve',addition:'Add or subtract a saved value',smallMultiply:'Direct ×3, ×4, ×6–×9',multiplyFive:'Direct ×5',divideFour:'Direct ÷4',divideFive:'Direct ÷5',divideThreeSix:'Direct ÷3 or ÷6',divideSevenEightNine:'Direct ÷7, ÷8 or ÷9',otherMultiply:'Other direct multiplication',otherDivide:'Other direct division',extraRetainedValue:'Each extra retained value, per subcalculation'};
+  const correctionParts={5:['decimalShift','halving','addition'],10:['decimalShift','addition'],15:['decimalShift','halving','addition','addition'],20:['decimalShift','doubling','addition'],25:['halving','halving','addition'],50:['halving','addition']};
+  function arithmeticWeight(action) {
+    if(action.addOriginal)return 'addition';
+    const multiply=action.d===1,value=multiply?action.n:action.d;
+    if(value===1)return null;
+    if(Number.isInteger(Math.log10(value)))return 'decimalShift';
+    if(multiply)return value===2?'doubling':value===5?'multiplyFive':value<=9?'smallMultiply':'otherMultiply';
+    return value===2?'halving':value===4?'divideFour':value===5?'divideFive':[3,6].includes(value)?'divideThreeSix':[7,8,9].includes(value)?'divideSevenEightNine':'otherDivide';
+  }
+  const stepRatings=new WeakMap();
+  function rateStep(step) {
+    if(stepRatings.has(step))return stepRatings.get(step);
+    const keys=step.kind==='percent'?correctionParts[step.percent]:(step.method??[step]).map(arithmeticWeight).filter(Boolean);
+    const parts=keys.map(key=>({label:weightLabels[key],points:weights[key]}));
+    const operationScore=parts.reduce((sum,part)=>sum+part.points,0);
+    const extraValues=Math.max(0,(step.retained??1)-1),memoryScore=extraValues*weights.extraRetainedValue;
+    if(extraValues)parts.push({label:`Keep ${extraValues} extra value${extraValues===1?'':'s'} during this subcalculation`,points:memoryScore});
+    const rating={instruction:step.short,operationScore,memoryScore,score:operationScore+memoryScore,parts};
+    stepRatings.set(step,rating);return rating;
+  }
+  function difficulty(rule) {
+    const breakdown=rule.steps.map(rateStep);
+    const operationScore=breakdown.reduce((sum,step)=>sum+step.operationScore,0);
+    const memoryScore=breakdown.reduce((sum,step)=>sum+step.memoryScore,0);
+    return {score:operationScore+memoryScore,operationScore,memoryScore,breakdown};
+  }
   // Conservative product vocabulary, not a table of scientifically measured seconds.
   // Count instruction-level actions separately from heuristic difficulty weights.
   // Direct multidigit multiplication can still contain substantial digit-level work.
@@ -37,7 +71,7 @@ const MentalMath = (() => {
   ];
   // User-selected vocabulary: a direct small multiply is allowed, a hard divide
   // is not its equally cheap mirror. Difficulty weights are not measured seconds.
-  for(let factor=3;factor<=9;factor++)operations.push({n:factor,d:1,label:`Multiply by ${factor}`,short:`×${factor}`,cost:1,difficulty:factor===5?3:2,retained:1,kind:'multiply',direct:true,recipe:'Direct multiplication. Its effort weight includes more work than doubling or a decimal shift; carries still depend on the amount.'});
+  for(let factor=3;factor<=9;factor++)operations.push({n:factor,d:1,label:`Multiply by ${factor}`,short:`×${factor}`,cost:1,retained:1,kind:'multiply',direct:true,recipe:'Direct multiplication. Its effort weight includes more work than doubling or a decimal shift; carries still depend on the amount.'});
   // ×10 is already a one-action decimal shift.
   // Compensation around a power of ten uses one saved value, not a free multiply.
   for(const [power,offset] of [[10,-1],[10,1],[100,-1],[100,1]]) {
@@ -55,7 +89,7 @@ const MentalMath = (() => {
   for(const [percent,work] of Object.entries(corrections)) for(const sign of [-1,1]) {
     const p=Number(percent),[n,d]=fraction(100+sign*p,100);
     if(p===50&&sign<0)continue; // Exactly halving; do not charge for a saved branch.
-    operations.push({n,d,label:`${sign>0?'Add':'Subtract'} ${p}% of this result`,short:`${sign>0?'+':'−'}${p}%`,...work,kind:'percent'});
+    operations.push({n,d,label:`${sign>0?'Add':'Subtract'} ${p}% of this result`,short:`${sign>0?'+':'−'}${p}%`,...work,kind:'percent',percent:p});
   }
   const scaleCache=new Map();
   const makeScale=power=>{
@@ -90,7 +124,7 @@ const MentalMath = (() => {
       const ordered=orderSteps(steps,scale);
       if(ordered.filter(step=>step.kind==='divide').length>2)continue;
       const primitiveSteps=ordered.reduce((sum,step)=>sum+step.cost,0);
-      const effort=ordered.reduce((sum,step)=>sum+(step.difficulty??step.cost),0);
+      const effort=ordered.reduce((sum,step)=>sum+rateStep(step).score,0);
       const retained=Math.max(1,...ordered.map(step=>step.retained??1));
       const mentalSteps=ordered.filter(step=>step.kind!=='scale').length;
       const directMultiplications=ordered.filter(step=>step.direct).length;
@@ -157,7 +191,7 @@ const MentalMath = (() => {
       return instruction(n,d,`Undo “${step.label.toLowerCase()}”.`);
     });
     const factor=rule.denominator/rule.numerator;
-    return {factor,numerator:rule.denominator,denominator:rule.numerator,steps,error:factor/reverseRate-1,inverseOf:rule};
+    return {factor,numerator:rule.denominator,denominator:rule.numerator,steps,effort:difficulty({steps}).score,error:factor/reverseRate-1,inverseOf:rule};
   }
   function trace(rule,amount) {
     let value=amount;
@@ -170,7 +204,7 @@ const MentalMath = (() => {
     });
   }
   function explain(rule) {return rule.steps.length?rule.steps.flatMap(step=>(step.method??[step]).map(action=>action.short)).join(' → '):'Keep the amount';}
-  return {choose,recommend,adaptive,inverse,trace,explain,stats:{routes,candidates:candidates.length,distinctFactors,constructionMs},operations};
+  return {choose,recommend,adaptive,inverse,trace,explain,difficulty,weights,weightLabels,stats:{routes,candidates:candidates.length,distinctFactors,constructionMs},operations};
 })();
 </script>
 <script id="rate-fixture" type="application/json">{"amount":1.0,"base":"EUR","date":"2026-10-16","rates":{"AUD":1.6171,"BRL":5.7197,"CAD":1.5935,"CHF":0.9272,"CNY":7.524,"CZK":24.323,"DKK":7.4748,"GBP":0.84385,"HKD":8.8316,"HUF":363.08,"IDR":20290.28,"ILS":3.4822,"INR":106.864,"ISK":136.2,"JPY":177.82,"KRW":1499.01,"MXN":20.6871,"MYR":4.5929,"NOK":10.624,"NZD":1.9868,"PHP":70.858,"PLN":4.37,"RON":5.331,"SEK":11.145,"SGD":1.4395,"THB":37.602,"TRY":55.7328,"USD":1.1253,"ZAR":18.493}}</script>
@@ -183,6 +217,7 @@ const state={from:'EUR',to:'JPY',amount:20,reverseAmount:1000,tolerance:.02,cust
 for(const id of ['from','to'])for(const code of Object.keys(rates).sort())$(id).add(new Option(code,code));
 $('source').innerHTML=`Frankfurter reference date: <b>${fixture.date}</b>. Cross-rates and reverse rates are derived from the same EUR snapshot. <a href="https://api.frankfurter.dev/v1/latest?base=EUR">Source API</a>. No requests are made by this page.`;
 $('search-stats').textContent=`${MentalMath.stats.routes.toLocaleString()} short routes; ${MentalMath.stats.distinctFactors.toLocaleString()} distinct factors, keeping alternatives with different step counts. Catalogue built in ${MentalMath.stats.constructionMs.toFixed(0)} ms on this device.`;
+$('weights').innerHTML=`<table><thead><tr><th>Operation or memory requirement</th><th>Points</th></tr></thead><tbody>${Object.entries(MentalMath.weights).map(([key,value])=>`<tr><td>${MentalMath.weightLabels[key]}</td><td>${fmt(value)}</td></tr>`).join('')}</tbody></table>`;
 const rewriteExamples=[['×5',5],['÷5',.2],['×25',25],['÷25',.04],['×50',50],['÷50',.02],['×4',4],['−50%',.5],['×9',9],['×11',11],['×99',99],['×101',101]];
 $('strategies').innerHTML=`<table><thead><tr><th>Calculation</th><th>Preferred instructions</th><th>Without direct ×3–×9</th></tr></thead><tbody>${rewriteExamples.map(([label,factor])=>{const rule=MentalMath.recommend(factor,0),alternative=MentalMath.choose(factor,0,3,4,false);return `<tr><td>${label}</td><td>${MentalMath.explain(rule)}</td><td>${alternative?MentalMath.explain(alternative):'No method in this budget'}</td></tr>`;}).join('')}</tbody></table>`;
 $('multipliers').innerHTML=`<table><thead><tr><th>Allowed directly</th><th>Preferred exact method</th><th>Counter-rule</th></tr></thead><tbody>${Array.from({length:8},(_,i)=>i+3).map(factor=>{const operation=MentalMath.operations.find(step=>step.direct&&step.n===factor),rule=operation?{factor,numerator:factor,denominator:1,steps:[operation]}:MentalMath.recommend(10,0);return `<tr><td>×${factor}</td><td>${MentalMath.explain(MentalMath.recommend(factor,0))}</td><td>${MentalMath.explain(MentalMath.inverse(rule,1/factor))}</td></tr>`;}).join('')}</tbody></table>`;
@@ -195,6 +230,10 @@ function render(){
   renderDirection('rules',rate,state.from,state.to,state.amount,state.reverseAmount,limit);
   renderDirection('reverse-rules',1/rate,state.to,state.from,state.reverseAmount,state.amount,limit);
 }
+function difficultyHTML(rule){
+  const rating=MentalMath.difficulty(rule);
+  return `<details open><summary>Estimated difficulty: <b>${fmt(rating.score)} points</b></summary><p>${fmt(rating.operationScore)} for arithmetic + ${fmt(rating.memoryScore)} for retained values. Lower is easier in this model; the amount and carries are not scored.</p><ol>${rating.breakdown.map(step=>`<li><b>${step.instruction}: ${fmt(step.score)} points</b><ul>${step.parts.map(part=>`<li>${part.label}: ${fmt(part.points)}</li>`).join('')}</ul></li>`).join('')}</ol></details>`;
+}
 function renderDirection(target,rate,from,to,amount,reverseAmount,limit){
   const easy=(state.adaptive?MentalMath.adaptive(rate,state.tolerance):MentalMath.recommend(rate,state.tolerance)),accurate=MentalMath.recommend(rate,.01);
   const entries=[['Easy',easy],...(accurate&&(!easy||easy.factor!==accurate.factor)?[[easy&&Math.abs(accurate.error)<Math.abs(easy.error)?'More accurate (within 1%)':'Alternative (within 1%)',accurate]]:[])];
@@ -205,7 +244,7 @@ function renderDirection(target,rate,from,to,amount,reverseAmount,limit){
     if(!rule){card.innerHTML=`<h3>${from} → ${to} · ${name}</h3><p>No independently simple rule meets this limit. Counter-rules of any rules found in the other direction are shown in their cards.</p>`;}
     else {
       const result=amount*rule.factor,counter= MentalMath.inverse(rule,1/rate),reverseResult=reverseAmount*counter.factor;
-      card.innerHTML=`<h3>${from} → ${to} · ${name}</h3><p class="rule">${MentalMath.explain(rule)}</p><p>${fmt(amount)} ${from} → <b>${fmt(result)} ${to}</b><br>Difference: <b>${fmt(result-amount*rate)} ${to}</b> (${percent(rule.error)})<br>Approximate multiplier: ${fmt(rule.factor)}<br>Arithmetic actions: ${rule.primitiveSteps}<br>Estimated effort score: ${rule.effort} (heuristic units)<br>Peak retained values in the described method: ${rule.retained}<br>${MentalMath.trace(rule,amount).length} displayed steps (${rule.mentalSteps} search operations)</p>${traceHTML(rule,amount)}${name==='Easy'&&accurate&&easy.factor===accurate.factor?'<p class="subtle">This rule also meets the tighter 1% limit.</p>':''}<hr><h4>${to} → ${from} · Exact inverse of this rule</h4><p class="rule">${MentalMath.explain(counter)}</p><p>${fmt(reverseAmount)} ${to} → <b>${fmt(reverseResult)} ${from}</b><br>Difference from the reference rate: <b>${fmt(reverseResult-reverseAmount/rate)} ${from}</b> (${percent(counter.error)})<br>Approximate multiplier: ${fmt(counter.factor)}</p><p class="subtle">Always available, even if harder. Difficulty is not scored. This exactly undoes the rule above; it still approximates the reference rate.${Math.abs(counter.error)>limit+1e-12?' Its error exceeds the selected easy-search limit.':''}</p>${traceHTML(counter,reverseAmount)}`;
+      card.innerHTML=`<h3>${from} → ${to} · ${name}</h3><p class="rule">${MentalMath.explain(rule)}</p><p>${fmt(amount)} ${from} → <b>${fmt(result)} ${to}</b><br>Difference: <b>${fmt(result-amount*rate)} ${to}</b> (${percent(rule.error)})<br>Approximate multiplier: ${fmt(rule.factor)}<br>Arithmetic actions: ${rule.primitiveSteps}<br>Peak retained values in the described method: ${rule.retained}<br>${MentalMath.trace(rule,amount).length} displayed steps (${rule.mentalSteps} search operations)</p>${difficultyHTML(rule)}${traceHTML(rule,amount)}${name==='Easy'&&accurate&&easy.factor===accurate.factor?'<p class="subtle">This rule also meets the tighter 1% limit.</p>':''}<hr><h4>${to} → ${from} · Exact inverse of this rule</h4><p class="rule">${MentalMath.explain(counter)}</p><p>${fmt(reverseAmount)} ${to} → <b>${fmt(reverseResult)} ${from}</b><br>Difference from the reference rate: <b>${fmt(reverseResult-reverseAmount/rate)} ${from}</b> (${percent(counter.error)})<br>Approximate multiplier: ${fmt(counter.factor)}</p><p class="subtle">Always available, even if harder. Its difficulty uses the same heuristic weights, including harder division. This exactly undoes the rule above; it still approximates the reference rate.${Math.abs(counter.error)>limit+1e-12?' Its error exceeds the selected easy-search limit.':''}</p>${difficultyHTML(counter)}${traceHTML(counter,reverseAmount)}`;
     }
     $(target).append(card);
   }
@@ -215,6 +254,7 @@ $('adaptive').onchange=()=>{state.adaptive=$('adaptive').checked;render();};
 $('swap').onclick=()=>{[state.from,state.to]=[state.to,state.from];[state.amount,state.reverseAmount]=[state.reverseAmount,state.amount];if(state.custom)state.customRate=1/state.customRate;render();};
 $('show-custom').onclick=()=>{state.custom=!state.custom;render();};
 const scenarios=[
+ {name:'Compare difficulty',description:'Scores sum the operation weights plus retained-value penalties. They apply to counter-rules too and are not measured times.',steps:[['×7: 2 points; ÷7: 6 points',()=>Object.assign(state,{custom:true,customRate:7,amount:20,reverseAmount:140,tolerance:1e-7,adaptive:false})],['×5: prefer a 2-point decomposition',()=>state.customRate=5],['−10%: 2.5 points; inverse: 7 points',()=>state.customRate=.9]]},
  {name:'Multiply versus divide',description:'Direct small multiplication is allowed, while the exact reverse may still require a harder division. ×5 keeps its preferred decomposition.',steps:[['×7 and its inverse ÷7',()=>Object.assign(state,{custom:true,customRate:7,amount:19.99,reverseAmount:140,tolerance:1e-7,adaptive:false})],['×8 and its inverse ÷8',()=>state.customRate=8],['×5: prefer halve then ×10',()=>state.customRate=5],['×4: the inverse can halve twice',()=>state.customRate=4]]},
  {name:'Easier instructions',description:'The generator uses exact decompositions. Halve before shifting the decimal point; compensation saves the original amount, so it also needs memory.',steps:[['×5: halve, then ×10',()=>Object.assign(state,{custom:true,customRate:5,amount:19.99,tolerance:1e-7,adaptive:false})],['÷5: double, then ÷10',()=>state.customRate=.2],['×25: halve twice, then ×100',()=>state.customRate=25],['×9: ×10 minus the saved value',()=>state.customRate=9],['×11: ×10 plus the saved value',()=>state.customRate=11]]},
  {name:'The 180-yen example',description:'Start with the proposed rule, then replace the hypothetical rate with the dated reference rate. Notice how the same rule gains a small measurable error.',steps:[['Use 180 JPY per EUR',()=>Object.assign(state,{from:'EUR',to:'JPY',amount:10,custom:true,customRate:180,tolerance:.02})],['Use the actual reference rate',()=>state.custom=false]]},
