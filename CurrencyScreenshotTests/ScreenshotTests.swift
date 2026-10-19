@@ -2,6 +2,45 @@ import XCTest
 
 @MainActor
 final class ScreenshotTests: XCTestCase {
+    func testAmountPresets() {
+        let app = XCUIApplication()
+        app.launchArguments = ["--screenshots", "-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]
+        app.launch()
+        waitForRates(in: app)
+        let presets = app.scrollViews["amount-presets"]
+        XCTAssertTrue(presets.waitForExistence(timeout: 5))
+        let twenty = app.buttons["amount-preset-20.0"]
+        XCTAssertTrue(twenty.waitForExistence(timeout: 5))
+        twenty.tap()
+        XCTAssertTrue(twenty.isSelected)
+        XCTAssertEqual((app.textFields.firstMatch.value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), "20 €")
+        XCTAssertTrue(app.buttons["comparison-JPY"].label.contains("3.289,6"))
+
+        let one = app.buttons["amount-preset-1.0"]
+        for _ in 0..<5 {
+            if one.isHittable { break }
+            presets.swipeRight()
+        }
+        XCTAssertTrue(one.isHittable)
+        one.tap()
+        XCTAssertTrue(one.isSelected)
+        XCTAssertTrue(app.buttons["comparison-JPY"].label.contains("164,48"))
+
+        app.buttons["JPY zur Hauptwährung machen"].tap()
+        let hundred = app.buttons["amount-preset-100.0"]
+        XCTAssertTrue(hundred.waitForExistence(timeout: 5))
+        for _ in 0..<5 {
+            if hundred.isHittable { break }
+            presets.swipeRight()
+        }
+        hundred.tap()
+        XCTAssertTrue(hundred.isSelected)
+        XCTAssertEqual((app.textFields.firstMatch.value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), "100 ¥")
+        XCTAssertTrue(app.buttons["amount-preset-500.0"].exists)
+        XCTAssertFalse(app.buttons["amount-preset-1.0"].exists)
+        app.terminate()
+    }
+
     func testLocalizedScreenshots() {
         continueAfterFailure = false
         XCUIDevice.shared.orientation = .portrait

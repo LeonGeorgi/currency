@@ -4,16 +4,23 @@ import WidgetKit
 
 @MainActor @Observable
 final class ExchangeStore {
-    var currencies = RateCache.shared.currencies() ?? Currency.common
+    var currencies: [Currency]
     var quotes: [QuoteSnapshot] = []
+    var euroReference: Rate?
     var history: [Rate] = []
     var historyError: String?
     var loadingRate = false
     var loadingHistory = false
-    private let client = FrankfurterClient()
-    private let cache = RateCache.shared
+    private let client: FrankfurterClient
+    private let cache: RateCache
     private var rateRequest = UUID()
     private var historyRequest = UUID()
+
+    init(client: FrankfurterClient = FrankfurterClient(), cache: RateCache = .shared) {
+        self.client = client
+        self.cache = cache
+        currencies = cache.currencies() ?? Currency.common
+    }
 
     func loadCurrencies() async {
         #if DEBUG
@@ -33,6 +40,7 @@ final class ExchangeStore {
     func loadRates(selection: CurrencySelection) async {
         #if DEBUG
         if ScreenshotSupport.isEnabled {
+            euroReference = ScreenshotSupport.rate(for: CurrencyPair(base: selection.base, quote: "EUR"))
             quotes = selection.quotes.map {
                 QuoteSnapshot(quote: $0, rate: ScreenshotSupport.rate(for: CurrencyPair(base: selection.base, quote: $0)), isOffline: false)
             }
@@ -42,15 +50,29 @@ final class ExchangeStore {
         #endif
         let request = UUID()
         rateRequest = request
+        let euroPair = CurrencyPair(base: selection.base, quote: "EUR")
+        if selection.base == "EUR" {
+            euroReference = Rate(date: .now, base: "EUR", quote: "EUR", rate: 1)
+        } else if let cached = cache.latest(for: euroPair) {
+            euroReference = cached
+        } else if let inverse = cache.latest(for: CurrencyPair(base: "EUR", quote: selection.base)) {
+            euroReference = Rate(date: inverse.date, base: selection.base, quote: "EUR", rate: 1 / inverse.rate)
+        } else {
+            euroReference = nil
+        }
         quotes = selection.quotes.map {
             QuoteSnapshot(quote: $0, rate: cache.latest(for: CurrencyPair(base: selection.base, quote: $0)), isOffline: false)
         }
         loadingRate = true
         defer { if rateRequest == request { loadingRate = false } }
-        let result = await client.latest(for: selection, cache: cache)
+        // Reuse an existing EUR comparison; otherwise fetch the reference alongside the quotes.
+        let requested = CurrencySelection(base: selection.base,
+                                          quotes: selection.quotes + (selection.base == "EUR" ? [] : ["EUR"]))
+        let result = await client.latest(for: requested, cache: cache)
         guard !Task.isCancelled, rateRequest == request else { return }
-        quotes = result
-        if result.contains(where: { !$0.isOffline }) {
+        quotes = result.filter { selection.quotes.contains($0.quote) }
+        if let reference = result.first(where: { $0.quote == "EUR" })?.rate { euroReference = reference }
+        if quotes.contains(where: { !$0.isOffline }) {
             WidgetCenter.shared.reloadTimelines(ofKind: "ExchangeWidget")
         }
     }

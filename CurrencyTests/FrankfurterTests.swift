@@ -2,6 +2,49 @@ import XCTest
 @testable import Currency
 
 final class FrankfurterTests: XCTestCase {
+    func testAmountPresetsUseOneTwoFiveAtCurrencyAppropriateScales() {
+        XCTAssertEqual(ConversionAmount.presets(for: "EUR", unitsPerEuro: 1), [1, 2, 5, 10, 20, 50, 100, 200])
+        XCTAssertEqual(ConversionAmount.presets(for: "JPY", unitsPerEuro: 164.48), [100, 200, 500, 1000, 2000, 5000, 10000, 20000])
+        XCTAssertEqual(ConversionAmount.presets(for: "GBP", unitsPerEuro: 0.86).first, 1)
+        XCTAssertEqual(ConversionAmount.presets(for: "CZK", unitsPerEuro: 24.323).first, 10)
+        XCTAssertEqual(ConversionAmount.presets(for: "KRW", unitsPerEuro: 1499).first, 1000)
+        for rate in [nil, .nan, .infinity, 0, -1] as [Double?] {
+            XCTAssertEqual(ConversionAmount.presets(for: "JPY", unitsPerEuro: rate).first, 100)
+            XCTAssertEqual(ConversionAmount.presets(for: "EUR", unitsPerEuro: rate).first, 1)
+        }
+    }
+
+    @MainActor
+    func testPresetReferenceDoesNotAddEURToVisibleComparisons() async throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let store = ExchangeStore(client: mockClient(), cache: RateCache(directory: directory))
+        await store.loadRates(selection: CurrencySelection(base: "JPY", quotes: ["ERR"]))
+        XCTAssertEqual(store.quotes.map(\.quote), ["ERR"])
+        XCTAssertEqual(store.euroReference?.base, "JPY")
+        XCTAssertEqual(store.euroReference?.quote, "EUR")
+        let reference = try XCTUnwrap(store.euroReference)
+        XCTAssertEqual(ConversionAmount.presets(for: "JPY", unitsPerEuro: 1 / reference.rate).first, 100)
+        await store.loadRates(selection: CurrencySelection(base: "EUR", quotes: ["JPY"]))
+        XCTAssertEqual(store.quotes.map(\.quote), ["JPY"])
+        XCTAssertEqual(store.euroReference?.base, "EUR")
+        XCTAssertEqual(store.euroReference?.rate, 1)
+    }
+
+    @MainActor
+    func testPresetReferenceCanUseAnInverseCachedRateOffline() async {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let cache = RateCache(directory: directory)
+        let pair = CurrencyPair(base: "EUR", quote: "KRW")
+        cache.save(Rate(date: .now, base: pair.base, quote: pair.quote, rate: 1499), for: pair)
+        let store = ExchangeStore(client: mockClient(), cache: cache)
+        await store.loadRates(selection: CurrencySelection(base: "KRW", quotes: []))
+        XCTAssertTrue(store.quotes.isEmpty)
+        XCTAssertEqual(store.euroReference?.base, "KRW")
+        XCTAssertEqual(store.euroReference?.rate, 1 / 1499)
+    }
+
     func testRateDecodingUsesUTCDate() throws {
         let json = Data(#"{"date":"2026-10-16","base":"EUR","quote":"JPY","rate":173.42}"#.utf8)
         let rate = try APIDate.decoder().decode(Rate.self, from: json)
@@ -184,7 +227,9 @@ private final class FixtureURLProtocol: URLProtocol, @unchecked Sendable {
     override func startLoading() {
         let url = request.url!
         let status = url.path.contains("ERR") ? 422 : 200
-        let latest = #"{"date":"2026-10-16","base":"EUR","quote":"JPY","rate":173.42}"#
+        let latest = url.path.hasSuffix("/JPY/EUR")
+            ? #"{"date":"2026-10-16","base":"JPY","quote":"EUR","rate":0.0058}"#
+            : #"{"date":"2026-10-16","base":"EUR","quote":"JPY","rate":173.42}"#
         let earlier = #"{"date":"2026-10-15","base":"EUR","quote":"JPY","rate":171.0}"#
         let body = url.path.hasSuffix("rates") ? "[\(latest),\(earlier)]" : latest
         let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: ["Content-Type": "application/json"])!

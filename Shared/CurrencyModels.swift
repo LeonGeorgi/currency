@@ -187,6 +187,18 @@ struct QuoteSnapshot: Identifiable, Sendable {
 }
 
 enum ConversionAmount {
+    /// Keep a familiar 1–2–5 sequence, roughly scaled to the value of one euro.
+    static func presets(for currency: String, unitsPerEuro: Double?) -> [Double] {
+        let fallback: Double = currency == "JPY" ? 100 : currency == "KRW" ? 1000 : 1
+        let start: Double
+        if let unitsPerEuro, unitsPerEuro.isFinite, unitsPerEuro > 0 {
+            start = pow(10, min(8, max(-3, log10(unitsPerEuro).rounded())))
+        } else {
+            start = fallback
+        }
+        return [1, 2, 5, 10, 20, 50, 100, 200].map { $0 * start }
+    }
+
     /// The widget's decimal keyboard may use a comma or a point depending on system language.
     static func parse(_ text: String) -> Double? {
         let normalized = text.trimmingCharacters(in: .whitespacesAndNewlines).replacingOccurrences(of: ",", with: ".")

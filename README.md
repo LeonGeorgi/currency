@@ -39,6 +39,7 @@ Captured automatically by native UI tests using fixed sample data. Only small JP
 ## Using the app
 
 - The base currency and amount appear at the top, with comparison currencies in separate cards below. The amount and currency selection are saved between launches. Rates and converted amounts include currency symbols and up to twelve significant digits. Native flag emoji identify currencies in both the app and widget; the euro uses the EU flag, and currencies without a single associated country use a globe.
+- Swipe the amount buttons below the input to choose a typical amount. Presets follow a 1–2–5 sequence, scaled roughly to the currency's value against the euro: EUR offers 1, 2, 5 … 200; JPY offers 100, 200, 500 … 20,000. The selected amount is highlighted, saved, and synchronized with the widget. You can still enter any amount directly.
 - Tap the base currency code to change it. Use the **plus button** to select multiple comparison currencies. Both pickers support searching by currency name or code.
 - Tap **Edit** at the top left to show native reorder handles and delete buttons. The saved order determines which three currencies appear in the widget. An empty comparison list is also saved.
 - The target button (`scope`) on each comparison card makes that currency the base. The previous base takes its place in the comparison list; the other currencies and entered amount are preserved.
@@ -57,6 +58,8 @@ The shared native String Catalogs, `Shared/Localizable.xcstrings` and `Shared/In
 The app uses the public [Frankfurter v2 API](https://frankfurter.dev/): `/currencies`, `/rate/{base}/{quote}`, and `/rates`, with `base`, `quotes`, `from`, `to`, and optional `group` parameters. Rates are daily reference rates. The displayed date comes from the API, rather than the time of the request. These are not intraday or guaranteed transaction rates.
 
 Rates and time series are cached locally. The app and widget share the latest rates through their App Group. The amount and ordered currency selection are also saved as an atomic file in that group. The app owns these settings; the widget reads them and displays the first three comparisons. Failed requests fall back to cached data and mark it accordingly. Without cached data, the interface shows an empty error state. Sample rates are used only in widget previews and the separate debug screenshot mode.
+
+Amount presets use the nearest power of ten to the number of currency units per euro. A euro reference is reused or fetched alongside comparison rates without adding it to the visible selection. Cached rates work offline, including the inverse direction; without a reference the app uses a default scale, with yen and won starting at 100 and 1,000 respectively.
 
 Changes in the app request a widget refresh. Amount edits are briefly debounced and published immediately when the app leaves the foreground. The widget also requests a new timeline after four hours, or after thirty minutes when an error occurs. iOS determines the actual refresh time.
 

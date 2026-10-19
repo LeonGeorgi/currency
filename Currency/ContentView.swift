@@ -20,6 +20,11 @@ struct ContentView: View {
     private var selection: CurrencySelection { CurrencySelection(base: base, quotes: quotes) }
     private var sharedSettings: ConversionSettings { ConversionSettings(selection: selection, amount: amount) }
     private var rateDates: [Date] { store.quotes.compactMap { $0.rate?.date }.sorted() }
+    private var presetAmounts: [Double] {
+        let reference = store.euroReference
+        let units = reference?.base == base ? reference.map { 1 / $0.rate } : nil
+        return ConversionAmount.presets(for: base, unitsPerEuro: base == "EUR" ? 1 : units)
+    }
 
     var body: some View {
         NavigationStack(path: $navigationPath) {
@@ -193,6 +198,45 @@ struct ContentView: View {
                     .lineLimit(1)
                     .accessibilityLabel("Betrag in \(base)")
                 Text(currencyName(base)).font(.subheadline).foregroundStyle(.secondary)
+            }
+
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal) {
+                    HStack(spacing: 8) {
+                        ForEach(presetAmounts, id: \.self) { preset in
+                            Button {
+                                editingAmount = false
+                                amount = preset
+                            } label: {
+                                Text(CurrencyDisplay.amount(preset, code: base))
+                                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                                    .fixedSize()
+                            }
+                            .buttonStyle(.bordered)
+                            .buttonBorderShape(.capsule)
+                            .controlSize(.large)
+                            .tint(amount == preset ? Color.accentColor : Color.primary)
+                            .accessibilityAddTraits(amount == preset ? [.isSelected] : [])
+                            .accessibilityHint("Als Betrag verwenden")
+                            .accessibilityIdentifier("amount-preset-\(preset)")
+                            .id(preset)
+                        }
+                    }
+                    .padding(.vertical, 4)
+                }
+                .scrollIndicators(.hidden)
+                .accessibilityIdentifier("amount-presets")
+                .onAppear {
+                    if presetAmounts.contains(amount) { proxy.scrollTo(amount, anchor: .center) }
+                }
+                .onChange(of: base) { _, _ in
+                    if let first = presetAmounts.first { proxy.scrollTo(first, anchor: .leading) }
+                }
+                .onChange(of: presetAmounts) { _, values in
+                    if let target = values.contains(amount) ? amount : values.first {
+                        proxy.scrollTo(target, anchor: .center)
+                    }
+                }
             }
         }
         .padding(.vertical, 20)
