@@ -43,7 +43,7 @@ Captured automatically by native UI tests using fixed sample data. Only small JP
 - Tap the base currency code to change it. Use the **plus button** to select multiple comparison currencies. Both pickers support searching by currency name or code.
 - Tap **Edit** at the top left to show native reorder handles and delete buttons. The saved order determines which three currencies appear in the widget. An empty comparison list is also saved.
 - The target button (`scope`) on each comparison card makes that currency the base. The previous base takes its place in the comparison list; the other currencies and entered amount are preserved.
-- Tap a comparison currency to open its details, including a worked mental-conversion example and its history. Choose a period and touch the chart to inspect individual rates. The chart shows the rate for one unit of the base currency, regardless of the entered amount. Five-year charts use weekly data points; ten-year charts use monthly points. **Start at zero** controls the vertical axis baseline and saves each change immediately, including across app restarts.
+- Tap a comparison currency to open its details, including worked mental-conversion examples for both directions and its history. The app independently picks the easiest rule within 5% of each reference rate; the reverse example starts from a rounded amount in the other currency. Choose a period and touch the chart to inspect individual rates. The chart shows the rate for one unit of the base currency, regardless of the entered amount. Five-year charts use weekly data points; ten-year charts use monthly points. **Start at zero** controls the vertical axis baseline and saves each change immediately, including across app restarts.
 - Choose **… → Settings** to change the accent color. A large preview shows the current app icon; tap a color swatch below it to update the app, widget, and Home Screen icon together. The selected swatch has a checkmark. Choices include the original terracotta and thirteen standard Apple colors. The selection is saved between launches.
 - Pull down to refresh or choose **… → Refresh**. Data source information and widget instructions are available under **… → About Currencies**.
 - To add a widget, touch and hold the Home Screen, then choose **Edit → Add Widget → Currencies**. Small widgets show a compact conversion list; medium widgets have a separate amount area and comparison cards. Both use native SwiftUI layouts and system backgrounds for light and dark mode. The widget follows the app's amount, base currency, and first three comparison currencies in their saved order. Tapping it opens the app without replacing its full currency list.
@@ -66,7 +66,7 @@ Changes in the app request a widget refresh. Amount edits are briefly debounced 
 
 ## Project structure
 
-- `Currency/`: SwiftUI views, observable application state, and the mental-conversion rule generator. Worked examples use the saved amount, visible intermediate values and curved operation arrows; a compact sketch uses handwritten figures and short curved arrows beside the intermediate amounts. Useful rules are remembered while their reference error stays within 3%.
+- `Currency/`: SwiftUI views, observable application state, and the mental-conversion rule generator. Worked examples use the saved amount, visible intermediate values and curved operation arrows; a compact sketch uses handwritten figures and short curved arrows beside the intermediate amounts. Both directions are recomputed for the current rate, choosing the lowest effort score within 5% reference error.
 - `Currency/Resources/Fonts/`: Patrick Hand supplies the handwriting used only in mental-conversion sketches. Its SIL Open Font License and attribution are included with the app.
 - `Currency/AppIcon.icon`: A layered Icon Composer document included directly in Xcode, with separate coin and currency symbol layers. Apple's Icon Composer supplies lighting, materials, and system appearances; dark mode uses a separate high-contrast symbol fill.
 - `Currency/AppIcons/`: Alternate layered Icon Composer documents for the standard Apple colors. `Currency/Appearance.xcassets` contains light and dark previews rendered by Icon Composer for the Settings banner.
@@ -79,7 +79,7 @@ Changes in the app request a widget refresh. Amount edits are briefly debounced 
 
 ## Experiments
 
-The [mental currency conversion experiment](docs/mental-math.md) evaluates automatically generated rules for mental arithmetic across 870 currency conversions. Its conservative revision excludes unfamiliar fractions and counts the work behind percentage corrections. The [scientific evidence note](docs/mental-arithmetic-evidence.md) distinguishes experimental findings from the generator's design assumptions. An offline interactive prototype lives on a separate branch. The app now uses a Swift implementation of the accepted vocabulary and relative weights. Its detail view shows a worked example without exposing scores or technical explanations. The production search limits examples to four arithmetic actions, four displayed steps and six effort points; those limits are design heuristics, not measured human thresholds.
+The [mental currency conversion experiment](docs/mental-math.md) evaluates automatically generated rules for mental arithmetic across 870 currency conversions. Its conservative revision excludes unfamiliar fractions and counts the work behind percentage corrections. The [scientific evidence note](docs/mental-arithmetic-evidence.md) distinguishes experimental findings from the generator's design assumptions. An offline interactive prototype lives on a separate branch. The app now uses a Swift implementation of the accepted vocabulary and relative weights. Its detail view shows the forward and independently optimized reverse examples side by side, stacking them when space is limited or accessibility text sizes are enabled. Scores and technical explanations stay out of the interface. The production search limits examples to five arithmetic actions, four displayed steps and six effort points; those limits are design heuristics, not measured human thresholds.
 
 ## Testing
 
@@ -109,7 +109,7 @@ For a fork with its own Pages address, add `--base-url https://OWNER.github.io/R
 
 ### Validation performed
 
-The app build and forty unit tests have passed with Xcode 27 on an iPhone 17 simulator running iOS 27. The deployment target is iOS 26; testing on a physical iOS 26 device is still pending.
+The app build and forty-three unit tests have passed with Xcode 27 on an iPhone 17 simulator running iOS 27. The deployment target is iOS 26; testing on a physical iOS 26 device is still pending.
 
 Appearance checks cover color selection, the icon preview, alternate Home Screen icons, and persistence after relaunch. All five localizations have been checked in the simulator, including number, date, and currency formatting. Compiler-extracted interface text, placeholders, and compiled language resources have been checked in both the app and widget.
 

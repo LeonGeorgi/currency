@@ -2,6 +2,52 @@ import XCTest
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testPercentCorrectionBeatsChainedMultiplicationsForYen() throws {
+        let chain = MentalRule(operations: [.multiply(2), .multiply(8), .multiply(10)])
+        let correction = MentalRule(operations: [.multiply(2), .percent(-20), .multiply(100)])
+        XCTAssertTrue(correction.isSimple)
+        XCTAssertLessThan(correction.effort, chain.effort)
+        for rate in [160.0, 164.48] {
+            let rule = try XCTUnwrap(MentalRules.recommend(rate: rate))
+            XCTAssertEqual(rule.operations, correction.operations)
+            XCTAssertLessThanOrEqual(abs(rule.error(at: rate)), 0.05)
+        }
+        XCTAssertEqual(correction.trace(amount: 100, roundingForMentalMath: true).map(\.value), [200, 160, 16000])
+        // Exact small multipliers and powers of ten should remain convenient.
+        XCTAssertEqual(MentalRule(operations: [.multiply(8), .multiply(10)]).effort, 4)
+        XCTAssertEqual(MentalRule(operations: [.multiply(2), .multiply(2)]).effort, 3)
+        XCTAssertEqual(try XCTUnwrap(MentalRules.recommend(rate: 4)).operations, [.multiply(4)])
+    }
+
+    func testFivePercentPrefersTheSimplestRuleOverAMoreAccurateOne() throws {
+        let rule = try XCTUnwrap(MentalRules.recommend(rate: 1.04))
+        XCTAssertTrue(rule.operations.isEmpty)
+        XCTAssertLessThanOrEqual(abs(rule.error(at: 1.04)), 0.05)
+        // A zero-action identity wins even though +5% is closer to the reference rate.
+        XCTAssertLessThan(abs(MentalRule(operations: [.percent(5)]).error(at: 1.04)), abs(rule.error(at: 1.04)))
+        XCTAssertTrue(try XCTUnwrap(MentalRules.recommend(rate: 0.96)).operations.isEmpty)
+        let outside = try XCTUnwrap(MentalRules.recommend(rate: 1.06))
+        XCTAssertFalse(outside.operations.isEmpty)
+        XCTAssertLessThanOrEqual(abs(outside.error(at: 1.06)), 0.05)
+    }
+
+    func testReverseSearchFindsAnEasierRuleThanTheExactInverse() throws {
+        let rules = MentalRules.recommendDirections(rate: 0.9)
+        let forward = try XCTUnwrap(rules.forward)
+        let reverse = try XCTUnwrap(rules.reverse)
+        XCTAssertEqual(forward.operations, [.percent(-10)])
+        XCTAssertEqual(reverse.operations, [.percent(10)])
+        XCTAssertLessThan(reverse.effort, forward.inverse.effort)
+        XCTAssertLessThanOrEqual(abs(reverse.error(at: 1 / 0.9)), 0.05)
+        XCTAssertEqual(reverse.trace(amount: 90, roundingForMentalMath: true).last?.value, 99)
+        for rate in [0.13678, 0.86627, 1.16842, 164.48, 180.0] {
+            let pair = MentalRules.recommendDirections(rate: rate)
+            XCTAssertNotNil(pair.forward)
+            let counter = try XCTUnwrap(pair.reverse)
+            XCTAssertLessThanOrEqual(abs(counter.error(at: 1 / rate)), 0.05 + 1e-12)
+        }
+    }
+
     func testTwoHalvingsBecomeOneQuarterStepWithoutDiscountingTheWork() throws {
         let rule = MentalRule(operations: [.divide(2), .divide(2)])
         XCTAssertEqual(rule.operations, [.divide(4)])
@@ -34,18 +80,18 @@ final class MentalMathTests: XCTestCase {
         let rule = try XCTUnwrap(MentalRules.recommend(rate: rate))
         let multiplications = MentalRule(operations: [.divide(100), .multiply(2), .multiply(7)])
         XCTAssertEqual(rule.operations, [.divide(10), .third(increasing: true)])
-        XCTAssertEqual(rule.effort, multiplications.effort)
+        XCTAssertLessThan(rule.effort, multiplications.effort)
         XCTAssertLessThan(rule.displayedSteps, multiplications.displayedSteps)
-        XCTAssertLessThanOrEqual(abs(rule.error(at: rate)), 0.03)
+        XCTAssertLessThanOrEqual(abs(rule.error(at: rate)), 0.05)
         XCTAssertEqual(rule.trace(amount: 300).map(\.value), [30, 40])
         // The longer subtract-third variant is equivalent, but is not preferable.
         let alternative = MentalRule(operations: [.divide(10), .multiply(2), .third(increasing: false)])
         XCTAssertTrue(alternative.isSimple)
         XCTAssertEqual(rule.factor, alternative.factor, accuracy: 1e-12)
         // A shorter rule must still respect the accuracy limit.
-        let outside = try XCTUnwrap(MentalRules.recommend(rate: 0.14))
-        XCTAssertGreaterThan(abs(rule.error(at: 0.14)), 0.03)
-        XCTAssertLessThanOrEqual(abs(outside.error(at: 0.14)), 0.03)
+        let outside = try XCTUnwrap(MentalRules.recommend(rate: 0.145))
+        XCTAssertGreaterThan(abs(rule.error(at: 0.145)), 0.05)
+        XCTAssertLessThanOrEqual(abs(outside.error(at: 0.145)), 0.05)
     }
 
     func testThirdCorrectionsAreSelectedAndHaveExactCounterRules() throws {
@@ -119,7 +165,7 @@ final class MentalMathTests: XCTestCase {
         let decoded = try JSONDecoder().decode([String: MentalRule].self, from: data)
         let rule = try XCTUnwrap(decoded["EUR-JPY"])
         XCTAssertEqual(rule.operations, [.multiply(2), .percent(-10), .multiply(100)])
-        XCTAssertEqual(MentalRules.recommend(rate: 177.82, keeping: rule), rule)
+        XCTAssertEqual(MentalRules.recommend(rate: 177.82), rule)
         XCTAssertEqual(try JSONDecoder().decode(MentalRule.self, from: JSONEncoder().encode(rule)), rule)
     }
 
@@ -185,12 +231,12 @@ final class MentalMathTests: XCTestCase {
         }
     }
 
-    func testKnownRuleRemainsStableUntilTooInaccurate() throws {
+    func testRulesAreRecomputedAndRemainCodable() throws {
         let previous = MentalRule(operations: [.multiply(2), .multiply(100), .percent(-10)])
-        XCTAssertEqual(MentalRules.recommend(rate: 177.82, keeping: previous), previous)
-        let changed = try XCTUnwrap(MentalRules.recommend(rate: 200, keeping: previous))
+        XCTAssertEqual(MentalRules.recommend(rate: 177.82), previous)
+        let changed = try XCTUnwrap(MentalRules.recommend(rate: 200))
         XCTAssertNotEqual(changed, previous)
-        XCTAssertLessThanOrEqual(abs(changed.error(at: 200)), 0.03)
+        XCTAssertLessThanOrEqual(abs(changed.error(at: 200)), 0.05)
         let data = try JSONEncoder().encode(["EUR-JPY": previous])
         XCTAssertEqual(try JSONDecoder().decode([String: MentalRule].self, from: data)["EUR-JPY"], previous)
     }
@@ -213,7 +259,7 @@ final class MentalMathTests: XCTestCase {
                 guard let rule = MentalRules.recommend(rate: rate) else { continue }
                 covered += 1
                 XCTAssertTrue(rule.isSimple)
-                XCTAssertLessThanOrEqual(abs(rule.error(at: rate)), 0.03 + 1e-12)
+                XCTAssertLessThanOrEqual(abs(rule.error(at: rate)), 0.05 + 1e-12)
                 let inverse = rule.inverse
                 XCTAssertEqual(inverse.error(at: 1 / rate), -rule.error(at: rate) / (1 + rule.error(at: rate)), accuracy: 1e-12)
                 for amount in [0, 0.01, 1, 19.99, 100, 9999, -12.5] {

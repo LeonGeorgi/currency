@@ -4,44 +4,70 @@ struct MentalConversionView: View {
     let pair: CurrencyPair
     let rate: Double
     let amount: Double
-    // Recompute cached choices when the difficulty model changes.
-    @AppStorage("mentalRules.v6") private var storedRules = Data()
-    @State private var rule: MentalRule?
+    @State private var rules = MentalRules.Directions(forward: nil, reverse: nil)
     @State private var isLoading = true
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var exampleAmount: Double { amount.isFinite ? amount : 20 }
+    private var reversePair: CurrencyPair { CurrencyPair(base: pair.quote, quote: pair.base) }
+    private var reverseAmount: Double {
+        let converted = exampleAmount * rate
+        return converted.isFinite ? MentalRule.roundedForMentalMath(converted) : 20
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            if let rule {
-                MentalCalculationFlow(rule: rule, amount: exampleAmount, from: pair.base, to: pair.quote)
-                    .accessibilityIdentifier("mental-calculation")
-                Text("Genau: \(CurrencyDisplay.amount(exampleAmount * rate, code: pair.quote))")
-                    .font(.caption).foregroundStyle(.secondary)
-                    .accessibilityIdentifier("mental-exact-result")
-            } else if isLoading {
+        Group {
+            if isLoading {
                 ProgressView().frame(maxWidth: .infinity)
+            } else if dynamicTypeSize.isAccessibilitySize {
+                stackedCalculations
+            } else {
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .top, spacing: 20) {
+                        calculation(rule: rules.forward, pair: pair, amount: exampleAmount, rate: rate, reverse: false, compact: true)
+                        calculation(rule: rules.reverse, pair: reversePair, amount: reverseAmount, rate: 1 / rate, reverse: true, compact: true)
+                    }
+                    .fixedSize(horizontal: true, vertical: false)
+                    stackedCalculations
+                }
+            }
+        }
+        .padding(.vertical, 4)
+        .task(id: rate) { await loadRules() }
+    }
+
+    private var stackedCalculations: some View {
+        VStack(alignment: .leading, spacing: 20) {
+            calculation(rule: rules.forward, pair: pair, amount: exampleAmount, rate: rate, reverse: false)
+            calculation(rule: rules.reverse, pair: reversePair, amount: reverseAmount, rate: 1 / rate, reverse: true)
+        }
+    }
+
+    private func calculation(rule: MentalRule?, pair: CurrencyPair, amount: Double, rate: Double,
+                             reverse: Bool, compact: Bool = false) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(verbatim: "\(pair.base) → \(pair.quote)")
+                .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
+            if let rule {
+                MentalCalculationFlow(rule: rule, amount: amount, from: pair.base, to: pair.quote, compact: compact)
+                    .accessibilityIdentifier(reverse ? "mental-calculation-reverse" : "mental-calculation")
+                Text("Genau: \(CurrencyDisplay.amount(amount * rate, code: pair.quote))")
+                    .font(.caption).foregroundStyle(.secondary)
+                    .accessibilityIdentifier(reverse ? "mental-exact-result-reverse" : "mental-exact-result")
             } else {
                 Text("Für diesen Kurs gibt es gerade keine einfache Faustregel.")
                     .font(.subheadline).foregroundStyle(.secondary)
             }
         }
-        .padding(.vertical, 4)
-        .task(id: rate) { await loadRule() }
     }
 
-    private func loadRule() async {
-        let remembered = (try? JSONDecoder().decode([String: MentalRule].self, from: storedRules)) ?? [:]
-        let previous = ScreenshotSupport.isEnabled ? nil : remembered[pair.key]
+    private func loadRules() async {
         let next = await Task.detached(priority: .userInitiated) {
-            MentalRules.recommend(rate: rate, keeping: previous)
+            MentalRules.recommendDirections(rate: rate)
         }.value
         guard !Task.isCancelled else { return }
-        rule = next
+        rules = next
         isLoading = false
-        guard !ScreenshotSupport.isEnabled, let next, remembered[pair.key] != next else { return }
-        var updated = remembered
-        updated[pair.key] = next
-        if let encoded = try? JSONEncoder().encode(updated) { storedRules = encoded }
     }
 }
 
@@ -52,6 +78,7 @@ private struct MentalCalculationFlow: View {
     let amount: Double
     let from: String
     let to: String
+    var compact = false
     @ScaledMetric(relativeTo: .body) private var valueHeight = 30.0
     @ScaledMetric(relativeTo: .body) private var gap = 8.0
     @Environment(\.layoutDirection) private var layoutDirection
@@ -66,7 +93,14 @@ private struct MentalCalculationFlow: View {
 
     var body: some View {
         Group {
-            if dynamicTypeSize.isAccessibilitySize { accessibleLayout }
+            if steps.isEmpty {
+                HStack(spacing: 5) {
+                    Text(CurrencyDisplay.amount(amount, code: from))
+                    Text("≈").foregroundStyle(.secondary)
+                    Text(CurrencyDisplay.amount(amount, code: to)).foregroundStyle(accent.color)
+                }
+                .font(.custom("PatrickHand-Regular", size: compact ? 22 : 24, relativeTo: .body))
+            } else if dynamicTypeSize.isAccessibilitySize { accessibleLayout }
             else {
                 ViewThatFits(in: .horizontal) {
                     regularLayout
@@ -80,20 +114,18 @@ private struct MentalCalculationFlow: View {
     }
 
     private var regularLayout: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Grid(horizontalSpacing: 5, verticalSpacing: gap) {
+        HStack(alignment: .top, spacing: compact ? 6 : 8) {
+            Grid(horizontalSpacing: compact ? 3 : 5, verticalSpacing: gap) {
                 ForEach(values.indices, id: \.self) { index in
                     GridRow(alignment: .firstTextBaseline) {
-                        Text(isApproximate(at: index) ? "≈" : "")
-                            .frame(height: valueHeight)
-                        Text(values[index].formatted(.number.precision(.significantDigits(1...12))))
+                        Text((isApproximate(at: index) ? "≈ " : "") + values[index].formatted(.number.precision(.significantDigits(1...12))))
                             .gridColumnAlignment(.trailing)
                             .frame(height: valueHeight)
                         Text(index == 0 ? CurrencyDisplay.symbol(for: from) : index == values.count - 1 ? CurrencyDisplay.symbol(for: to) : "")
                             .gridColumnAlignment(.leading)
                             .frame(height: valueHeight)
                     }
-                    .font(.custom("PatrickHand-Regular", size: 24, relativeTo: .body))
+                    .font(.custom("PatrickHand-Regular", size: compact ? 22 : 24, relativeTo: .body))
                     .foregroundStyle(index == values.count - 1 ? accent.color : Color.primary)
                     .lineLimit(1).minimumScaleFactor(0.55)
                 }
@@ -110,7 +142,7 @@ private struct MentalCalculationFlow: View {
                             .scaleEffect(x: layoutDirection == .rightToLeft ? -1 : 1)
                             .accessibilityHidden(true)
                         Text(operation(steps[index].calculation))
-                            .font(.custom("PatrickHand-Regular", size: 19, relativeTo: .caption))
+                            .font(.custom("PatrickHand-Regular", size: compact ? 18 : 19, relativeTo: .caption))
                             .rotationEffect(.degrees(index.isMultiple(of: 2) ? -1.2 : 0.8))
                             .foregroundStyle(.secondary)
                             .lineLimit(2)
@@ -120,7 +152,7 @@ private struct MentalCalculationFlow: View {
                     .frame(height: valueHeight + gap)
                 }
             }
-            .frame(width: 78, alignment: .leading)
+            .frame(width: compact ? 64 : 78, alignment: .leading)
             .padding(.top, valueHeight / 2)
         }
     }
@@ -177,7 +209,8 @@ private struct MentalCalculationFlow: View {
         }
     }
     private var accessibleSequence: String {
-        ([value(at: 0)] + steps.enumerated().map { "\(accessibleOperation($0.element.calculation)): \(value(at: $0.offset + 1))" }).joined(separator: ". ")
+        if steps.isEmpty { return "\(CurrencyDisplay.amount(amount, code: from)) ≈ \(CurrencyDisplay.amount(amount, code: to))" }
+        return ([value(at: 0)] + steps.enumerated().map { "\(accessibleOperation($0.element.calculation)): \(value(at: $0.offset + 1))" }).joined(separator: ". ")
     }
 }
 

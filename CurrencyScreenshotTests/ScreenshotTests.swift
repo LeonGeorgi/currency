@@ -79,6 +79,30 @@ final class ScreenshotTests: XCTestCase {
         app.terminate()
     }
 
+    func testMentalConversionShowsBothDirections() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["--screenshots", "-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]
+        app.launch()
+        waitForRates(in: app)
+        app.buttons["comparison-JPY"].tap()
+        let forward = app.descendants(matching: .any).matching(identifier: "mental-calculation").firstMatch
+        let reverse = app.descendants(matching: .any).matching(identifier: "mental-calculation-reverse").firstMatch
+        XCTAssertTrue(forward.waitForExistence(timeout: 10))
+        XCTAssertTrue(reverse.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["EUR → JPY"].exists)
+        XCTAssertTrue(app.staticTexts["JPY → EUR"].exists)
+        XCTAssertTrue(app.staticTexts["mental-exact-result"].exists)
+        XCTAssertTrue(app.staticTexts["mental-exact-result-reverse"].exists)
+        XCTAssertEqual(forward.frame.minY, reverse.frame.minY, accuracy: 1)
+        XCTAssertGreaterThan(reverse.frame.minX, forward.frame.minX)
+        let image = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        image.name = "mental-conversion-both-directions"
+        image.lifetime = .keepAlways
+        add(image)
+        app.terminate()
+    }
+
     func testAmountPresets() {
         let app = XCUIApplication()
         app.launchArguments = ["--screenshots", "-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]
@@ -139,7 +163,7 @@ final class ScreenshotTests: XCTestCase {
             app.buttons["comparison-JPY"].tap()
             let calculation = app.descendants(matching: .any).matching(identifier: "mental-calculation").firstMatch
             XCTAssertTrue(calculation.waitForExistence(timeout: 10))
-            XCTAssertFalse(app.descendants(matching: .any).matching(identifier: "mental-direction").firstMatch.exists)
+            XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "mental-calculation-reverse").firstMatch.waitForExistence(timeout: 5))
             capture("\(language)--mental-math")
             for _ in 0..<5 {
                 if app.switches["chart-starts-at-zero"].isHittable { break }

@@ -104,7 +104,21 @@ struct MentalRule: Codable, Hashable, Sendable {
     }
 
     var factor: Double { operations.reduce(1) { $0 * $1.factor } }
-    var effort: Double { operations.reduce(0) { $0 + $1.effort } }
+    var effort: Double {
+        var score = 0.0
+        var multiplying = false
+        for operation in operations {
+            score += operation.effort
+            let nextMultiplies: Bool
+            if case .multiply = operation { nextMultiplies = !operation.isScale }
+            else if case .compensate = operation { nextMultiplies = true }
+            else { nextMultiplies = false }
+            // Repeated multiplication is less convenient than one familiar correction.
+            if multiplying && nextMultiplies { score += 1 }
+            multiplying = nextMultiplies
+        }
+        return score
+    }
     var actions: Int { operations.reduce(0) { $0 + $1.actions } }
     var retained: Int { operations.map(\.retained).max() ?? 1 }
     var mentalSteps: Int {
@@ -117,7 +131,7 @@ struct MentalRule: Codable, Hashable, Sendable {
     }
     func error(at rate: Double) -> Double { factor / rate - 1 }
     var isSimple: Bool {
-        operations.allSatisfy(\.isSimple) && actions <= 4 && effort <= 6 && displayedSteps <= 4 &&
+        operations.allSatisfy(\.isSimple) && actions <= 5 && effort <= 6 && displayedSteps <= 4 &&
         operations.reduce(0, { $0 + ($1 == .divide(4) ? 2 : $1 == .divide(2) ? 1 : 0) }) <= 2 && mentalSteps <= 3 &&
         operations.filter(\.isCorrection).count <= 1
     }
@@ -183,6 +197,22 @@ struct MentalRule: Codable, Hashable, Sendable {
 }
 
 enum MentalRules {
+    struct Directions: Sendable {
+        let forward: MentalRule?
+        let reverse: MentalRule?
+    }
+
+    static let maximumRelativeError = 0.05
+
+    /// Search the reciprocal separately: undoing the forward procedure can be much harder.
+    static func recommendDirections(rate: Double) -> Directions {
+        let forward = recommend(rate: rate)
+        let reverse = recommend(rate: 1 / rate)
+        let counter = forward?.inverse
+        let fallback = counter.flatMap { abs($0.error(at: 1 / rate)) <= maximumRelativeError + 1e-12 ? $0 : nil }
+        return Directions(forward: forward, reverse: reverse ?? fallback)
+    }
+
     private struct Key: Hashable {
         let numerator: Int
         let denominator: Int
@@ -245,39 +275,34 @@ enum MentalRules {
             .sorted { $0.factor == $1.factor ? String(describing: $0.rule.operations) < String(describing: $1.rule.operations) : $0.factor < $1.factor }
     }()
 
-    static func recommend(rate: Double, keeping previous: MentalRule? = nil) -> MentalRule? {
+    static func recommend(rate: Double) -> MentalRule? {
         guard rate.isFinite, rate > 0 else { return nil }
-        if let previous, previous.isSimple, abs(previous.error(at: rate)) <= 0.03 { return previous }
-        func choose(tolerance: Double) -> MentalRule? {
-            var low = 0, high = catalogue.count
-            while low < high {
-                let middle = (low + high) / 2
-                if catalogue[middle].factor < rate * (1 - tolerance) { low = middle + 1 } else { high = middle }
-            }
-            var best: MentalRule?
-            for candidate in catalogue[low...] {
-                if candidate.factor > rate * (1 + tolerance) + 1e-12 { break }
-                let rule = candidate.rule, error = abs(rule.error(at: rate))
-                guard error <= tolerance + 1e-12 else { continue }
-                if let current = best {
-                    if rule.effort > current.effort { continue }
-                    if rule.effort == current.effort {
-                        if rule.displayedSteps > current.displayedSteps { continue }
-                        if rule.displayedSteps == current.displayedSteps {
-                            if rule.retained > current.retained { continue }
-                            if rule.retained == current.retained {
-                                if error > abs(current.error(at: rate)) { continue }
-                                if error == abs(current.error(at: rate)) && rule.actions >= current.actions { continue }
-                            }
+        let tolerance = maximumRelativeError
+        var low = 0, high = catalogue.count
+        while low < high {
+            let middle = (low + high) / 2
+            if catalogue[middle].factor < rate * (1 - tolerance) { low = middle + 1 } else { high = middle }
+        }
+        var best: MentalRule?
+        for candidate in catalogue[low...] {
+            if candidate.factor > rate * (1 + tolerance) + 1e-12 { break }
+            let rule = candidate.rule, error = abs(rule.error(at: rate))
+            guard error <= tolerance + 1e-12 else { continue }
+            if let current = best {
+                if rule.effort > current.effort { continue }
+                if rule.effort == current.effort {
+                    if rule.displayedSteps > current.displayedSteps { continue }
+                    if rule.displayedSteps == current.displayedSteps {
+                        if rule.retained > current.retained { continue }
+                        if rule.retained == current.retained {
+                            if error > abs(current.error(at: rate)) { continue }
+                            if error == abs(current.error(at: rate)) && rule.actions >= current.actions { continue }
                         }
                     }
                 }
-                best = rule
             }
-            return best
+            best = rule
         }
-        let strict = choose(tolerance: 0.02), relaxed = choose(tolerance: 0.03)
-        if let strict, relaxed == nil || strict.effort <= relaxed!.effort { return strict }
-        return relaxed
+        return best
     }
 }
