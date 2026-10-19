@@ -1,4 +1,4 @@
-# Mental currency conversion rules with asymmetric multiplication and division
+# Mental currency conversion rules with explicit difficulty weights
 
 This experiment now distinguishes numerical approximation coverage from human usability. The first version found a short expression for every sampled conversion by treating eighths, sixths, and other derived operations as cheap. User feedback rejected that definition of “easy”. Its earlier 100% numerical coverage is **not evidence of 100% usability**.
 
@@ -8,12 +8,12 @@ The [primary research note](mental-arithmetic-evidence.md) reviews five experime
 
 - Allow direct **×3 through ×10**, alongside doubling, halving and decimal shifts. Direct multiplication and its inverse division have different eligibility: direct ÷3–÷9 stays outside the simple search. ÷4 and ÷5 remain available as two halvings or doubling followed by ÷10.
 - Retain familiar decompositions, including ×5 as halving then ×10, and compensation around 10/100. Do not force a decomposition when a direct small multiplier is preferred.
-- Separate instruction-level arithmetic actions from estimated effort. A direct multiplication is one instruction-level action. Doubling, halving and decimal shifts have effort weight 1; direct ×3, ×4, ×6, ×7, ×8 and ×9 have weight 2. Direct ×5 has weight 3 to keep its two-action halving/shift route preferred. These are user-guided heuristics, not measured seconds or universal difficulty rankings.
+- Separate instruction-level arithmetic actions from estimated effort. Add 0.5 points for each extra retained value in each subcalculation; repeated use of a saved branch is charged again. A direct multiplication is one instruction-level action. Doubling, halving and decimal shifts have effort weight 1; direct ×3, ×4, ×6, ×7, ×8 and ×9 have weight 2. Direct ×5 has weight 3 to keep its two-action halving/shift route preferred. These are user-guided heuristics, not measured seconds or universal difficulty rankings.
 - Count the work inside corrections: ±5% has three actions, ±10% two, ±15% four, ±20% and ±25% three, and +50% two. −50% is simply halving. Corrections retain the necessary input/share values; a direct multiply has one running value at this abstraction level. Digit-level carries are not separately modeled.
 - Merge decimal shifts and cancel opposing double/halve steps before scoring. Keep alternatives with different action counts so a cheaper score cannot discard a route needed under a tighter action limit.
 - Limit the default to four instruction-level arithmetic actions, at most three non-scale search operations, two standalone halvings and one percentage correction. Exclude sixths, eighths and 12.5% corrections from the simple vocabulary.
 - Target 2% relative error, accepting up to 3% only for a lower **effort score**, rather than merely fewer displayed instructions. Within a score, prefer fewer retained values, lower error, then fewer arithmetic actions.
-- Every rule found in either direction gets its exact counter-rule, even when it requires a harder division. Counter-rules have their own reference error and are not assigned an invented easy-division score.
+- Every rule found in either direction gets its exact counter-rule, even when it requires a harder division. Both directions use the same explicit difficulty model; larger division weights express the user’s preference and are not scientifically measured times.
 
 ## Reproducibility
 
@@ -29,9 +29,45 @@ The [primary research note](mental-arithmetic-evidence.md) reviews five experime
 | 1% | 650/870 | 74.7% | 0.474% |
 | 2% | 825/870 | 94.8% | 0.946% |
 | 3% | 864/870 | 99.3% | 1.324% |
-| 5% | 870/870 | 100.0% | 2.248% |
+| 5% | 870/870 | 100.0% | 2.284% |
 
-The adaptive 2%/3% policy finds independently eligible rules for **864/870** directions, with **6** gaps. Of those rules, 627 stay within 2%. Median absolute reference error is 1.29%. Higher mathematical coverage follows from accepting direct small multiplication; it is not evidence that all these routes are easy for people. Four instruction-level actions can have an effort score greater than four.
+The adaptive 2%/3% policy finds independently eligible rules for **864/870** directions, with **6** gaps. Of those rules, 613 stay within 2%. Median absolute reference error is 1.32%. Higher mathematical coverage follows from accepting direct small multiplication; it is not evidence that all these routes are easy for people. Four instruction-level actions can have an effort score greater than four.
+
+## Difficulty score and its breakdown
+
+Every selected rule and every counter-rule receives a relative score from the same pure `difficulty(rule)` function. The search uses that same score to rank eligible rules. The demo exposes the arithmetic/memory split and the contribution of each subcalculation; the central weights are also shown as a table.
+
+**Score = sum of operation weights + 0.5 × extra values retained in each subcalculation.** A lower score means less predicted effort in this heuristic model. This is not a time estimate, an error probability, or a calibrated easy/hard classification. Scores currently do not depend on the entered amount, number of digits, decimal places or carries.
+
+| Operation | Starting weight |
+| --- | ---: |
+| Double, halve, or shift the decimal point | 1 |
+| Add/subtract a saved value | 1 |
+| Direct ×3, ×4, ×6, ×7, ×8, ×9 | 2 |
+| Direct ×5 | 3 |
+| Direct ÷4 / ÷5 | 3 / 4 |
+| Direct ÷3 / ÷6 | 5 |
+| Direct ÷7 / ÷8 / ÷9 | 6 |
+| Other direct multiplication / division | 4 / 7 |
+| Each extra retained value, per subcalculation | +0.5 |
+
+Decimal shifts include ×10, ÷10, ×100, ÷100, etc. Known decompositions are scored as their actual instructions, so two halvings cost 2 rather than the direct ÷4 weight of 3. Division weights make hard counter-rules comparable without adding them to the easy search vocabulary. Direct ×5 keeps a higher weight than its two-point halving/shift alternative, as explicitly requested by the user.
+
+Percentage procedures are decomposed too: ±10% = a decimal shift plus addition/subtraction (2 arithmetic points) and retaining the input (+0.5). ±15% uses four arithmetic points and two extra retained values (+1). ±5%, ±20% and ±25% each total 3.5; +50% totals 2.5; −50% is simply halving at 1 point.
+
+| Example | Arithmetic | Memory | Total |
+| --- | ---: | ---: | ---: |
+| Direct ×7: ×7 | 2 | 0 | 2 |
+| Direct ÷7: ÷7 | 6 | 0 | 6 |
+| Direct ×5: ×5 | 3 | 0 | 3 |
+| Halve then ×10: halve → ×10 | 2 | 0 | 2 |
+| Subtract 10%: −10% | 2 | 0.5 | 2.5 |
+| Undo subtracting 10%: ×10 → ÷9 | 7 | 0 | 7 |
+| Add 15%: +15% | 4 | 1 | 5 |
+
+One retained value means only the running result at this abstraction level. It does not mean multidigit multiplication uses no working memory. Extra branch values are charged while their subcalculation is active; sequential branches do not all remain live at once. The existing peak-retained-value estimate stays available as additional context.
+
+The constants are explicit design assumptions informed by the evidence note and user preferences. Their values are not measurements from those papers. Validation should compare complete rules on round and awkward amounts before fitting any empirical weights or predicting seconds.
 
 ## Direct multiplication and its counter-rule
 
@@ -64,7 +100,7 @@ The division side is deliberately asymmetric: ÷3, ÷6, ÷7, ÷8 and ÷9 are sho
 | ×9 / ×11 | save input → ×10 → subtract/add saved input |
 | ×99 / ×101 | save input → ×100 → subtract/add saved input |
 
-Saving an input is represented by the retained-value estimate, not charged as an arithmetic action. “Saved input” means the value at the start of that subcalculation, including when it follows another operation. The trace shows the actual intermediate values. The demo compares preferred methods with a search that excludes direct ×3–×9, so the earlier procedures remain inspectable.
+Saving an input adds a memory penalty of 0.5 points per extra retained value, but does not count as an arithmetic action. “Saved input” means the value at the start of that subcalculation, including when it follows another operation. The trace shows the actual intermediate values. The demo compares preferred methods with a search that excludes direct ×3–×9, so the earlier procedures remain inspectable.
 
 The previous revision covered **547/870** directions independently and **658/870** including counter-rules. The new multiplication vocabulary substantially increases numerical availability while leaving the error thresholds and four-action cap unchanged. The scientific evidence note does not validate the current weights or assert that a multidigit ×7 takes the same time for every person or amount.
 
@@ -72,7 +108,7 @@ The previous revision covered **547/870** directions independently and **658/870
 
 For every generated rule, reverse the instruction order and undo each step. This is always displayed beside the original rule, including when no independently easy reverse rule exists. The demo shows independently searched rules for both directions and lets the two example amounts be changed separately. Swapping currencies also swaps those amounts.
 
-Use integer operations in the inverse instructions: undoing −10% is **×10 → ÷9**, rather than decimal division or reciprocal fraction notation. Undoing +10% is **×10 → ÷11**, and undoing +50% is **×2 → ÷3**. Changing the percentage sign does not undo a correction. Harder counter-rules remain visible without claiming they meet the conservative vocabulary or assigning them an invented difficulty score.
+Use integer operations in the inverse instructions: undoing −10% is **×10 → ÷9**, rather than decimal division or reciprocal fraction notation. Undoing +10% is **×10 → ÷11**, and undoing +50% is **×2 → ÷3**. Changing the percentage sign does not undo a correction. Harder counter-rules remain visible without claiming they meet the conservative vocabulary or presenting their heuristic difficulty score as an experimental measurement.
 
 | Original direction and rule | Exact counter-rule | Counter-rule's signed reference error |
 | --- | --- | ---: |
@@ -93,22 +129,22 @@ This table lists independently searched shortcuts only; missing entries can stil
 | Direction | Reference rate | Selected rule | Signed error | Arithmetic actions | Effort score |
 | --- | ---: | --- | ---: | ---: | ---: |
 | EUR → JPY | 177.82 | ×2 → ×9 → ×10 | +1.226% | 3 | 4 |
-| JPY → EUR | 0.00562366438 | halve → ÷100 → +10% | -2.199% | 4 | 4 |
-| EUR → USD | 1.1253 | +10% | -2.248% | 2 | 2 |
-| USD → EUR | 0.888651915 | −10% | +1.277% | 2 | 2 |
-| EUR → GBP | 0.84385 | −15% | +0.729% | 4 | 4 |
-| GBP → EUR | 1.18504474 | +20% | +1.262% | 3 | 3 |
-| EUR → CHF | 0.9272 | −10% | -2.934% | 2 | 2 |
-| CHF → EUR | 1.07851596 | +10% | +1.992% | 2 | 2 |
-| EUR → CNY | 7.524 | ×10 → −25% | -0.319% | 4 | 4 |
-| CNY → EUR | 0.132908028 | ×9 → ÷100 → +50% | +1.574% | 4 | 5 |
-| EUR → INR | 106.864 | ×100 → +10% | +2.935% | 3 | 3 |
-| INR → EUR | 0.00935768828 | ÷100 → −5% | +1.521% | 4 | 4 |
-| EUR → KRW | 1499.01 | ×1,000 → +50% | +0.066% | 3 | 3 |
-| KRW → EUR | 0.000667106957 | ×6 → ÷10,000 → +10% | -1.065% | 4 | 5 |
-| EUR → SEK | 11.145 | save, ×10 → +saved | -1.301% | 2 | 2 |
+| JPY → EUR | 0.00562366438 | halve → ÷100 → +10% | -2.199% | 4 | 4.5 |
+| EUR → USD | 1.1253 | +10% | -2.248% | 2 | 2.5 |
+| USD → EUR | 0.888651915 | −10% | +1.277% | 2 | 2.5 |
+| EUR → GBP | 0.84385 | −15% | +0.729% | 4 | 5 |
+| GBP → EUR | 1.18504474 | +20% | +1.262% | 3 | 3.5 |
+| EUR → CHF | 0.9272 | −10% | -2.934% | 2 | 2.5 |
+| CHF → EUR | 1.07851596 | +10% | +1.992% | 2 | 2.5 |
+| EUR → CNY | 7.524 | ×10 → −25% | -0.319% | 4 | 4.5 |
+| CNY → EUR | 0.132908028 | ×9 → ÷100 → +50% | +1.574% | 4 | 5.5 |
+| EUR → INR | 106.864 | ×100 → +10% | +2.935% | 3 | 3.5 |
+| INR → EUR | 0.00935768828 | ÷100 → −5% | +1.521% | 4 | 4.5 |
+| EUR → KRW | 1499.01 | ×1,000 → +50% | +0.066% | 3 | 3.5 |
+| KRW → EUR | 0.000667106957 | ×6 → ÷10,000 → +10% | -1.065% | 4 | 5.5 |
+| EUR → SEK | 11.145 | save, ×10 → +saved | -1.301% | 2 | 2.5 |
 | SEK → EUR | 0.0897263347 | ×9 → ÷100 | +0.305% | 2 | 3 |
-| EUR → THB | 37.602 | halve → ×7 → save, ×10 → +saved | +2.388% | 4 | 5 |
+| EUR → THB | 37.602 | halve → ×7 → save, ×10 → +saved | +2.388% | 4 | 5.5 |
 | THB → EUR | 0.0265943301 | ×3 → ×9 → ÷1,000 | +1.525% | 3 | 5 |
 | EUR → TRY | 55.7328 | ×7 → ×8 | +0.479% | 2 | 4 |
 | TRY → EUR | 0.0179427554 | ×2 → ×9 → ÷1,000 | +0.319% | 3 | 4 |
@@ -125,6 +161,7 @@ This table lists independently searched shortcuts only; missing entries can stil
 - All eight direct multipliers from 3 through 10 are executed explicitly, with their inverses and any available decomposition. The existing twelve exact-method examples are also checked. The runner verifies that hard division has not entered the simple operation vocabulary and that ×5 still prefers halving then ×10.
 - The runner also samples 1,001 logarithmically spaced rates from 10^-6 to 10^6, reporting coverage and gaps.
 - Approximation error is amount-independent without intermediate rounding. Human difficulty is not: digits, carries, working memory and familiarity matter. Direct multiplication is one instruction here, not one digit-level mental operation.
+- Difficulty scores for both directions are checked for finiteness, additive breakdowns and agreement with the score used by the search. The runner also checks ×7 versus ÷7, direct ×5 versus its preferred decomposition, memory costs and the zero-operation identity.
 - Effort weights and the four-action cap are product hypotheses. The numerical checks establish arithmetic consistency, not human speed or error rates.
 
 ## Next validation
