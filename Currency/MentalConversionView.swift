@@ -97,10 +97,13 @@ private struct MentalCalculationFlow: View {
             if steps.isEmpty {
                 HStack(spacing: 5) {
                     Text(CurrencyDisplay.amount(amount, code: from))
-                    Text("≈").foregroundStyle(.secondary)
-                    Text(CurrencyDisplay.amount(amount, code: to)).foregroundStyle(accent.color)
+                    Text("≈")
+                        .font(.custom("PatrickHand-Regular", size: compact ? 23 : 25, relativeTo: .title3).weight(.semibold))
+                        .foregroundStyle(accent.color)
+                    Text(CurrencyDisplay.amount(amount, code: to))
                 }
-                .font(.custom("PatrickHand-Regular", size: compact ? 22 : 24, relativeTo: .body))
+                .font(.custom("PatrickHand-Regular", size: compact ? 17 : 19, relativeTo: .subheadline))
+                .foregroundStyle(.secondary)
             } else if dynamicTypeSize.isAccessibilitySize { accessibleLayout }
             else {
                 ViewThatFits(in: .horizontal) {
@@ -126,8 +129,8 @@ private struct MentalCalculationFlow: View {
                             .gridColumnAlignment(.leading)
                             .frame(height: valueHeight)
                     }
-                    .font(.custom("PatrickHand-Regular", size: compact ? 22 : 24, relativeTo: .body))
-                    .foregroundStyle(index == values.count - 1 ? accent.color : Color.primary)
+                    .font(.custom("PatrickHand-Regular", size: compact ? 17 : 19, relativeTo: .subheadline))
+                    .foregroundStyle(.secondary)
                     .lineLimit(1).minimumScaleFactor(0.55)
                 }
             }
@@ -138,22 +141,21 @@ private struct MentalCalculationFlow: View {
                     HStack(spacing: 6) {
                         ScribbleCalculationArrow(variation: index)
                             .stroke(style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round))
-                            .foregroundStyle(accent.color.opacity(0.65))
+                            .foregroundStyle(accent.color.opacity(0.45))
                             .frame(width: 16, height: valueHeight + gap)
                             .scaleEffect(x: layoutDirection == .rightToLeft ? -1 : 1)
                             .accessibilityHidden(true)
                         Text(operation(steps[index].calculation))
-                            .font(.custom("PatrickHand-Regular", size: compact ? 18 : 19, relativeTo: .caption))
+                            .font(.custom("PatrickHand-Regular", size: compact ? 23 : 25, relativeTo: .title3).weight(.semibold))
                             .rotationEffect(.degrees(index.isMultiple(of: 2) ? -1.2 : 0.8))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-                            .minimumScaleFactor(0.6)
+                            .foregroundStyle(accent.color)
+                            .fixedSize(horizontal: true, vertical: false)
                             .accessibilityLabel(accessibleOperation(steps[index].calculation))
                     }
                     .frame(height: valueHeight + gap)
                 }
             }
-            .frame(width: compact ? 64 : 78, alignment: .leading)
+            .fixedSize(horizontal: true, vertical: false)
             .padding(.top, valueHeight / 2)
         }
     }
@@ -162,18 +164,19 @@ private struct MentalCalculationFlow: View {
         VStack(alignment: .leading, spacing: 16) {
             ForEach(values.indices, id: \.self) { index in
                 Text(value(at: index))
-                    .font(.custom("PatrickHand-Regular", size: 24, relativeTo: .body))
-                    .foregroundStyle(index == values.count - 1 ? accent.color : Color.primary)
+                    .font(.custom("PatrickHand-Regular", size: 20, relativeTo: .body))
+                    .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if index < steps.count {
                     HStack(spacing: 16) {
                         ScribbleCalculationArrow(variation: index)
                             .stroke(style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round))
-                            .foregroundStyle(accent.color.opacity(0.65))
+                            .foregroundStyle(accent.color.opacity(0.45))
                             .frame(width: 24, height: 48)
                             .accessibilityHidden(true)
                         Text(operation(steps[index].calculation))
-                            .font(.custom("PatrickHand-Regular", size: 24, relativeTo: .body)).foregroundStyle(.secondary)
+                            .font(.custom("PatrickHand-Regular", size: 28, relativeTo: .title3).weight(.semibold))
+                            .foregroundStyle(accent.color)
                     }
                     .padding(.leading, 16)
                 }
