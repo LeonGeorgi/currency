@@ -2,6 +2,32 @@ import XCTest
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testTwoHalvingsBecomeOneQuarterStepWithoutDiscountingTheWork() throws {
+        let rule = MentalRule(operations: [.divide(2), .divide(2)])
+        XCTAssertEqual(rule.operations, [.divide(4)])
+        XCTAssertEqual(rule.displayedSteps, 1)
+        XCTAssertEqual(rule.actions, 2)
+        XCTAssertEqual(rule.mentalSteps, 2)
+        XCTAssertEqual(rule.effort, 2)
+        XCTAssertTrue(rule.isSimple)
+        XCTAssertEqual(rule.trace(amount: 100).map(\.value), [25])
+        XCTAssertEqual(rule.trace(amount: 19.99, roundingForMentalMath: true).map(\.value), [5])
+        XCTAssertEqual(try XCTUnwrap(MentalRules.recommend(rate: 0.25)).operations, [.divide(4)])
+        XCTAssertEqual(rule.inverse.trace(amount: 25).last?.value, 100)
+        XCTAssertFalse(MentalRule(operations: [.divide(4), .divide(2)]).isSimple)
+    }
+
+    func testSavedHalvingsAreCompactedButSeparateSubcalculationsStayIntact() throws {
+        struct LegacyRule: Encodable { let operations: [MentalRule.Operation] }
+        let data = try JSONEncoder().encode(LegacyRule(operations: [.divide(2), .divide(2), .multiply(100)]))
+        let decoded = try JSONDecoder().decode(MentalRule.self, from: data)
+        XCTAssertEqual(decoded.operations, [.divide(4), .multiply(100)])
+        XCTAssertEqual(try JSONDecoder().decode(MentalRule.self, from: JSONEncoder().encode(decoded)), decoded)
+        let separate = MentalRule(operations: [.divide(2), .compensate(11), .divide(2)])
+        XCTAssertEqual(separate.operations, [.divide(2), .compensate(11), .divide(2)])
+        XCTAssertEqual(separate.trace(amount: 20).map(\.value), [10, 100, 110, 55])
+    }
+
     func testJPYToCZKPrefersTheShorterThirdRuleWithinTheErrorLimit() throws {
         // Frankfurter JPY/CZK snapshot dated 2026-10-16; no network in tests.
         let rate = 0.13678

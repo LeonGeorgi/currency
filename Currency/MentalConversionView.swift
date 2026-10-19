@@ -5,7 +5,7 @@ struct MentalConversionView: View {
     let rate: Double
     let amount: Double
     // Recompute cached choices when the difficulty model changes.
-    @AppStorage("mentalRules.v5") private var storedRules = Data()
+    @AppStorage("mentalRules.v6") private var storedRules = Data()
     @State private var rule: MentalRule?
     @State private var isLoading = true
 
@@ -157,6 +157,7 @@ private struct MentalCalculationFlow: View {
         func number(_ value: Double) -> String { value.formatted(.number.precision(.significantDigits(1...12))) }
         switch calculation {
         case .multiply(let n): return "× \(n.formatted())"
+        case .divide(4): return "× ¼"
         case .divide(let n): return "÷ \(n.formatted())"
         case .percent(let p): return "\(p < 0 ? "−" : "+") \(abs(p).formatted()) %"
         case .third(let increasing): return increasing ? "+ ⅓" : "− ⅓"

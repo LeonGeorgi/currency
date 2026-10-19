@@ -18,6 +18,7 @@ struct MentalRule: Codable, Hashable, Sendable {
         var actions: Int {
             switch self {
             case .compensate, .third: 2
+            case .divide(4): 2
             case .percent(let p): switch abs(p) { case 10, 50: 2; case 15: 4; default: 3 }
             default: 1
             }
@@ -28,7 +29,7 @@ struct MentalRule: Codable, Hashable, Sendable {
         var effort: Double {
             switch self {
             case .multiply(let n): n == 2 || Self.isDecimalShift(n) ? 1 : [5, 8, 9].contains(n) ? 3 : n <= 9 ? 2 : 4
-            case .divide(let n): n == 2 || Self.isDecimalShift(n) ? 1 : n == 4 ? 3 : n == 5 ? 4 : [3, 6].contains(n) ? 5 : [7, 8, 9].contains(n) ? 6 : 7
+            case .divide(let n): n == 2 || Self.isDecimalShift(n) ? 1 : n == 4 ? 2 : n == 5 ? 4 : [3, 6].contains(n) ? 5 : [7, 8, 9].contains(n) ? 6 : 7
             case .compensate: 2.5
             case .third: 3
             case .percent: Double(actions) + Double(retained - 1) * 0.5
@@ -49,7 +50,7 @@ struct MentalRule: Codable, Hashable, Sendable {
         var isSimple: Bool {
             switch self {
             case .multiply(let n): (2...9).contains(n) || Self.isDecimalShift(n)
-            case .divide(let n): n == 2 || Self.isDecimalShift(n)
+            case .divide(let n): n == 2 || n == 4 || Self.isDecimalShift(n)
             case .percent(let p): [5, 10, 15, 20, 25, 50, -5, -10, -15, -20, -25].contains(p)
             case .compensate(let n): [3, 9, 11, 99, 101].contains(n)
             case .third: true
@@ -83,7 +84,15 @@ struct MentalRule: Codable, Hashable, Sendable {
     init(operations: [Operation]) {
         let divisions = operations.filter { if case .divide(let n) = $0 { Operation.isDecimalShift(n) } else { false } }
         let multiplications = operations.filter { if case .multiply(let n) = $0 { Operation.isDecimalShift(n) } else { false } }
-        self.operations = divisions + operations.filter { !$0.isScale } + multiplications
+        var compact: [Operation] = []
+        for operation in divisions + operations.filter({ !$0.isScale }) + multiplications {
+            if operation == .divide(2), compact.last == .divide(2) {
+                compact[compact.count - 1] = .divide(4)
+            } else {
+                compact.append(operation)
+            }
+        }
+        self.operations = compact
     }
 
     private enum CodingKeys: String, CodingKey { case operations }
@@ -98,6 +107,9 @@ struct MentalRule: Codable, Hashable, Sendable {
     var effort: Double { operations.reduce(0) { $0 + $1.effort } }
     var actions: Int { operations.reduce(0) { $0 + $1.actions } }
     var retained: Int { operations.map(\.retained).max() ?? 1 }
+    var mentalSteps: Int {
+        operations.reduce(0) { $0 + ($1.isScale ? 0 : $1 == .divide(4) ? 2 : 1) }
+    }
     var displayedSteps: Int {
         operations.reduce(0) { count, operation in
             if case .compensate = operation { count + 2 } else { count + 1 }
@@ -106,7 +118,7 @@ struct MentalRule: Codable, Hashable, Sendable {
     func error(at rate: Double) -> Double { factor / rate - 1 }
     var isSimple: Bool {
         operations.allSatisfy(\.isSimple) && actions <= 4 && effort <= 6 && displayedSteps <= 4 &&
-        operations.filter { $0 == .divide(2) }.count <= 2 && operations.filter { !$0.isScale }.count <= 3 &&
+        operations.reduce(0, { $0 + ($1 == .divide(4) ? 2 : $1 == .divide(2) ? 1 : 0) }) <= 2 && mentalSteps <= 3 &&
         operations.filter(\.isCorrection).count <= 1
     }
 
@@ -208,7 +220,7 @@ enum MentalRules {
                 let rule = MentalRule(operations: halves + multiplying + scaleSteps + corrections)
                 guard rule.isSimple else { continue }
                 let common = gcd(n, d)
-                let key = Key(numerator: n / common, denominator: d / common, mentalSteps: rule.operations.filter { !$0.isScale }.count, actions: rule.actions)
+                let key = Key(numerator: n / common, denominator: d / common, mentalSteps: rule.mentalSteps, actions: rule.actions)
                 if let existing = choices[key] {
                     if rule.effort > existing.effort { continue }
                     if rule.effort == existing.effort && rule.retained >= existing.retained && rule.displayedSteps >= existing.displayedSteps { continue }
