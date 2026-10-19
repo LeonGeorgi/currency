@@ -2,10 +2,41 @@ import XCTest
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testDecimalDivisionsComeFirstAndMultiplicationsLast() {
+        let original: [MentalRule.Operation] = [.multiply(100), .percent(-10), .divide(2), .divide(1000), .multiply(2), .multiply(10), .divide(10)]
+        let rule = MentalRule(operations: original)
+        XCTAssertEqual(rule.operations, [.divide(1000), .divide(10), .percent(-10), .divide(2), .multiply(2), .multiply(100), .multiply(10)])
+        let factor = original.reduce(1.0) { $0 * $1.factor }
+        for amount in [19.99, 0.01, -87.5] {
+            XCTAssertEqual(rule.trace(amount: amount).last!.value, amount * factor, accuracy: 1e-12)
+        }
+    }
+
+    func testPreviouslySavedRulesGetTheNewOrderWhenDecoded() throws {
+        struct LegacyRule: Encodable { let operations: [MentalRule.Operation] }
+        let legacy = ["EUR-JPY": LegacyRule(operations: [.multiply(2), .multiply(100), .percent(-10)])]
+        let data = try JSONEncoder().encode(legacy)
+        let decoded = try JSONDecoder().decode([String: MentalRule].self, from: data)
+        let rule = try XCTUnwrap(decoded["EUR-JPY"])
+        XCTAssertEqual(rule.operations, [.multiply(2), .percent(-10), .multiply(100)])
+        XCTAssertEqual(MentalRules.recommend(rate: 177.82, keeping: rule), rule)
+        XCTAssertEqual(try JSONDecoder().decode(MentalRule.self, from: JSONEncoder().encode(rule)), rule)
+    }
+
+    func testEarlyDivisionKeepsRoundedCompensationCoherent() {
+        let rule = MentalRule(operations: [.compensate(11), .divide(100)])
+        XCTAssertEqual(rule.operations, [.divide(100), .compensate(11)])
+        let steps = rule.trace(amount: 19.99, roundingForMentalMath: true)
+        for (actual, expected) in zip(steps.map(\.value), [0.2, 2, 2.2]) {
+            XCTAssertEqual(actual, expected, accuracy: 1e-12)
+        }
+        XCTAssertEqual(steps.last?.calculation, .add(0.2))
+    }
+
     func testRoundedExampleUsesEachDisplayedResultForTheNextStep() {
         let rule = MentalRule(operations: [.multiply(2), .multiply(100), .percent(-10)])
         let steps = rule.trace(amount: 19.99, roundingForMentalMath: true)
-        XCTAssertEqual(steps.map(\.value), [40, 4000, 3600])
+        XCTAssertEqual(steps.map(\.value), [40, 36, 3600])
         XCTAssertTrue(steps.allSatisfy(\.isApproximate))
         XCTAssertEqual(rule.trace(amount: 19.99).last!.value, 3598.2, accuracy: 1e-10)
         XCTAssertTrue(rule.trace(amount: 100, roundingForMentalMath: true).allSatisfy { !$0.isApproximate })
@@ -32,7 +63,7 @@ final class MentalMathTests: XCTestCase {
 
     func testWorkedExampleAndExactCounterRule() {
         let rule = MentalRule(operations: [.multiply(2), .multiply(100), .percent(-10)])
-        XCTAssertEqual(rule.trace(amount: 20).map(\.value), [40, 4000, 3600])
+        XCTAssertEqual(rule.trace(amount: 20).map(\.value), [40, 36, 3600])
         XCTAssertEqual(rule.inverse.trace(amount: 3600).last?.value, 20)
         XCTAssertEqual(rule.inverse.factor, 1 / 180.0, accuracy: 1e-14)
         XCTAssertEqual(rule.effort, 4.5)
@@ -49,7 +80,7 @@ final class MentalMathTests: XCTestCase {
         XCTAssertGreaterThan(MentalRule.Operation.multiply(9).effort, MentalRule.Operation.multiply(3).effort)
         for rate in [177.82, 180] {
             let rule = try XCTUnwrap(MentalRules.recommend(rate: rate))
-            XCTAssertEqual(rule.operations, [.multiply(2), .multiply(100), .percent(-10)])
+            XCTAssertEqual(rule.operations, [.multiply(2), .percent(-10), .multiply(100)])
             XCTAssertEqual(rule.trace(amount: 19.99).last!.value, 3598.2, accuracy: 1e-10)
         }
     }

@@ -70,6 +70,21 @@ struct MentalRule: Codable, Hashable, Sendable {
     }
 
     let operations: [Operation]
+
+    init(operations: [Operation]) {
+        let divisions = operations.filter { if case .divide(let n) = $0 { Operation.isDecimalShift(n) } else { false } }
+        let multiplications = operations.filter { if case .multiply(let n) = $0 { Operation.isDecimalShift(n) } else { false } }
+        self.operations = divisions + operations.filter { !$0.isScale } + multiplications
+    }
+
+    private enum CodingKeys: String, CodingKey { case operations }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        // Apply the same ordering to rules saved by earlier app versions.
+        self.init(operations: try container.decode([Operation].self, forKey: .operations))
+    }
+
     var factor: Double { operations.reduce(1) { $0 * $1.factor } }
     var effort: Double { operations.reduce(0) { $0 + $1.effort } }
     var actions: Int { operations.reduce(0) { $0 + $1.actions } }
