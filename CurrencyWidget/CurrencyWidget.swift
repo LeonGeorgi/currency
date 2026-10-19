@@ -76,7 +76,7 @@ struct ExchangeWidgetView: View {
             if let amount = entry.amount {
                 if entry.quotes.isEmpty {
                     VStack(alignment: .leading, spacing: 12) {
-                        sourceAmount(amount, large: family == .systemMedium)
+                        sourceAmount(amount)
                         Text("Vergleichswährungen in der App auswählen")
                             .font(.caption).foregroundStyle(.secondary)
                     }
@@ -98,41 +98,31 @@ struct ExchangeWidgetView: View {
         .widgetURL(URL(string: "currency://open")!)
     }
 
-    private func sourceAmount(_ amount: Double, large: Bool) -> some View {
-        VStack(alignment: .leading, spacing: large ? 8 : 3) {
+    private func sourceAmount(_ amount: Double) -> some View {
+        HStack(spacing: 6) {
             Text(verbatim: "\(CurrencyDisplay.flag(for: entry.selection.base)) \(entry.selection.base)")
-                .font(.caption.weight(.semibold)).foregroundStyle(entry.accent.color)
-                .lineLimit(1)
+                .font(.caption2.weight(.medium))
             Text(CurrencyDisplay.amount(amount, code: entry.selection.base))
-                .font(.system(size: large ? 34 : 26, weight: .medium, design: .rounded))
-                .monospacedDigit().lineLimit(1).minimumScaleFactor(0.4)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .monospacedDigit()
         }
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("Ausgangsbetrag: \(CurrencyDisplay.amount(amount, code: entry.selection.base)) \(entry.selection.base)")
     }
 
     private func smallContent(amount: Double) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            sourceAmount(amount, large: false)
+        VStack(alignment: .leading, spacing: 5) {
+            sourceAmount(amount)
             Spacer(minLength: 0)
-            VStack(spacing: 5) {
+            VStack(spacing: 4) {
                 ForEach(entry.quotes) { snapshot in
-                    HStack(spacing: 5) {
-                        Text(verbatim: "\(CurrencyDisplay.flag(for: snapshot.quote)) \(snapshot.quote)")
-                            .font(.caption2.weight(.medium)).foregroundStyle(.secondary)
-                            .fixedSize(horizontal: true, vertical: false)
-                        if snapshot.isOffline {
-                            Image(systemName: "wifi.slash").font(.system(size: 8)).foregroundStyle(.secondary)
-                        }
-                        Spacer(minLength: 0)
-                        Text(convertedAmount(snapshot, amount: amount))
-                            .font(.system(size: entry.quotes.count > 2 ? 11 : 14, weight: .semibold, design: .rounded))
-                            .monospacedDigit().lineLimit(1).minimumScaleFactor(0.5)
-                    }
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel(quoteDescription(snapshot, amount: amount))
+                    quoteRow(snapshot, amount: amount, compact: true)
                 }
             }
+            Spacer(minLength: 0)
             Text(footer).font(.system(size: 9)).foregroundStyle(.secondary)
                 .lineLimit(1).minimumScaleFactor(0.7)
         }
@@ -140,57 +130,66 @@ struct ExchangeWidgetView: View {
     }
 
     private func mediumContent(amount: Double) -> some View {
-        GeometryReader { geometry in
-            HStack(spacing: 14) {
-                VStack(alignment: .leading, spacing: 8) {
-                    sourceAmount(amount, large: true)
-                    Spacer(minLength: 0)
-                    Text(footer).font(.system(size: 10)).foregroundStyle(.secondary)
-                        .lineLimit(2)
-                }
-                .frame(width: geometry.size.width * 0.30, alignment: .leading)
-
-                Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-                    if entry.quotes.count <= 2 {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                sourceAmount(amount)
+                Spacer(minLength: 0)
+                Text(footer).font(.caption2).foregroundStyle(.secondary)
+                    .lineLimit(1).minimumScaleFactor(0.7)
+            }
+            Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+                if entry.quotes.count <= 2 {
+                    GridRow {
                         ForEach(entry.quotes) { snapshot in
-                            GridRow { quoteCard(snapshot, amount: amount) }
-                        }
-                    } else {
-                        GridRow {
-                            quoteCard(entry.quotes[0], amount: amount)
-                            quoteCard(entry.quotes[1], amount: amount)
-                        }
-                        GridRow {
-                            quoteCard(entry.quotes[2], amount: amount)
-                                .gridCellColumns(2)
+                            quoteCard(snapshot, amount: amount)
                         }
                     }
+                } else {
+                    GridRow {
+                        quoteCard(entry.quotes[0], amount: amount)
+                        quoteCard(entry.quotes[1], amount: amount)
+                    }
+                    GridRow {
+                        quoteCard(entry.quotes[2], amount: amount)
+                            .gridCellColumns(2)
+                    }
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 
-    private func quoteCard(_ snapshot: QuoteSnapshot, amount: Double) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            HStack(spacing: 4) {
-                Text(CurrencyDisplay.flag(for: snapshot.quote))
-                Text(snapshot.quote).fontWeight(.semibold).foregroundStyle(.secondary)
-                if snapshot.isOffline {
-                    Image(systemName: "wifi.slash").foregroundStyle(.secondary)
+    private func quoteRow(_ snapshot: QuoteSnapshot, amount: Double, compact: Bool) -> some View {
+        HStack(spacing: compact ? 7 : 9) {
+            Text(CurrencyDisplay.flag(for: snapshot.quote))
+                .font(.system(size: compact ? 23 : 26))
+                .frame(width: compact ? 28 : 32)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 4) {
+                    Text(snapshot.quote)
+                    if snapshot.isOffline {
+                        Image(systemName: "wifi.slash")
+                    }
                 }
+                .font(.system(size: compact ? 9 : 10, weight: .medium))
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                Text(convertedAmount(snapshot, amount: amount))
+                    .font(.system(size: compact ? 14 : 18, weight: .semibold, design: .rounded))
+                    .monospacedDigit().lineLimit(1).minimumScaleFactor(0.5)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .font(.caption2).lineLimit(1)
-            Text(convertedAmount(snapshot, amount: amount))
-                .font(.system(size: entry.quotes.count > 2 ? 17 : 21, weight: .semibold, design: .rounded))
-                .monospacedDigit().lineLimit(1).minimumScaleFactor(0.5)
-                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-        .background(Color(uiColor: .secondarySystemGroupedBackground), in: .rect(cornerRadius: 16))
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(quoteDescription(snapshot, amount: amount))
+    }
+
+    private func quoteCard(_ snapshot: QuoteSnapshot, amount: Double) -> some View {
+        quoteRow(snapshot, amount: amount, compact: false)
+            .padding(8)
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+            .background(Color(uiColor: .secondarySystemGroupedBackground), in: .rect(cornerRadius: 14))
     }
 
     private func convertedAmount(_ snapshot: QuoteSnapshot, amount: Double) -> String {
