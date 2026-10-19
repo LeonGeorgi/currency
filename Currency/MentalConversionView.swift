@@ -157,10 +157,10 @@ private struct MentalCalculationFlow: View {
         func number(_ value: Double) -> String { value.formatted(.number.precision(.significantDigits(1...12))) }
         switch calculation {
         case .multiply(let n): return "× \(n.formatted())"
-        case .divide(4): return "× ¼"
+        case .divide(4): return "× 1/4"
         case .divide(let n): return "÷ \(n.formatted())"
         case .percent(let p): return "\(p < 0 ? "−" : "+") \(abs(p).formatted()) %"
-        case .third(let increasing): return increasing ? "+ ⅓" : "− ⅓"
+        case .third(let increasing): return increasing ? "+ 1/3" : "− 1/3"
         case .add(let n): return "+ \(n < 0 ? "(\(number(n)))" : number(n))"
         case .subtract(let n): return "− \(n < 0 ? "(\(number(n)))" : number(n))"
         }
