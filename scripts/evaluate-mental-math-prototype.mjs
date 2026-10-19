@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
+import assert from 'node:assert/strict';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const html=fs.readFileSync(path.join(root,'Shared/MentalMathPrototype.html'),'utf8');
 const context=vm.createContext({performance});
@@ -16,7 +17,8 @@ const summarize=rule=>rule?{rule:math.explain(rule),factor:rule.factor,errorPerc
 const coins=['JPY','USD','GBP','CHF','CNY','INR','KRW','SEK','THB','TRY','IDR','AUD'];
 for(const quote of coins)for(const [from,to,amount] of [['EUR',quote,20],[quote,'EUR',1000]]){
   const rate=rates[to]/rates[from];
-  result.examples.push({from,to,rate,amount,exact:amount*rate,easy:summarize(math.adaptive(rate,.02)),accurate:summarize(math.recommend(rate,.01))});
+  const easy=math.adaptive(rate,.02),accurate=math.recommend(rate,.01);
+  result.examples.push({from,to,rate,amount,exact:amount*rate,easy:summarize(easy),easyInverse:summarize(math.inverse(easy,1/rate)),accurate:summarize(accurate),accurateInverse:summarize(math.inverse(accurate,1/rate))});
 }
 const currencies=Object.keys(rates);
 const pairs=[];
@@ -44,6 +46,16 @@ result.adaptiveSummary={found:adaptiveFound.length,missing:pairs.length-adaptive
     maxPrimitiveSteps:Math.max(...adaptiveFound.map(rule=>rule.primitiveSteps)),
     medianErrorPercent:adaptiveFound.map(rule=>Math.abs(rule.errorPercent)).sort((a,b)=>a-b)[Math.floor(adaptiveFound.length/2)],
 };
+result.pairedRules=pairs.map(pair=>{
+  const own=math.adaptive(pair.rate,.02),opposite=math.adaptive(1/pair.rate,.02);
+  return {...pair,independentlyEasy:summarize(own),inverseOfOpposite:summarize(math.inverse(opposite,pair.rate))};
+});
+const pairedFound=result.pairedRules.filter(pair=>pair.independentlyEasy||pair.inverseOfOpposite);
+result.pairedSummary={independentlyEasy:adaptiveFound.length,availableWithInverses:pairedFound.length,
+  inverseOnly:pairedFound.filter(pair=>!pair.independentlyEasy).length,missing:pairs.length-pairedFound.length,
+  inversesOutside3Percent:result.pairedRules.filter(pair=>pair.inverseOfOpposite&&Math.abs(pair.inverseOfOpposite.errorPercent)>3+1e-10).length,
+  worstInverseErrorPercent:Math.max(...result.pairedRules.flatMap(pair=>pair.inverseOfOpposite?[Math.abs(pair.inverseOfOpposite.errorPercent)]:[])),
+};
 result.synthetic=[];
 for(const rate of [1,180,1/180,1.125,Math.PI,1e-6,1e6]){
   const rule=math.choose(rate,.03);
@@ -63,6 +75,34 @@ for(const {rate} of pairs){
   }
 }
 result.stats.maxRelativeTraceResidual=maxTraceResidual;
+// Check inverses without applying the easy-search budget: each must reverse the
+// actual instructions, preserve the rational reciprocal, and report its own error.
+let inverseRules=0,roundTrips=0,maxRoundTripResidual=0,maxInverseErrorResidual=0;
+const execute=(rule,amount)=>math.trace(rule,amount).at(-1)?.value??amount;
+for(const {rate} of [...pairs,...[1,180,1/180,1e-8,1e8].map(rate=>({rate}))]){
+  for(const rule of [math.adaptive(rate,.02),math.recommend(rate,.01)]){
+    if(!rule)continue;
+    const inverse=math.inverse(rule,1/rate);
+    inverseRules++;
+    assert.equal(inverse.numerator,rule.denominator);
+    assert.equal(inverse.denominator,rule.numerator);
+    const errorResidual=Math.abs(inverse.error-(-rule.error/(1+rule.error)));
+    maxInverseErrorResidual=Math.max(maxInverseErrorResidual,errorResidual);
+    assert.ok(errorResidual<1e-12,'Reciprocal market error must be recomputed');
+    for(const amount of [0,.01,1,5,19.99,100,9999]){
+      const forward=execute(rule,amount),back=execute(inverse,forward);
+      const residual=Math.abs(back-amount)/Math.max(1,Math.abs(amount));
+      maxRoundTripResidual=Math.max(maxRoundTripResidual,residual);roundTrips++;
+      assert.ok(residual<1e-12,'Inverse instructions must undo the forward instructions');
+      assert.ok(Math.abs(execute(inverse,amount)-amount*inverse.factor)/Math.max(1,Math.abs(amount*inverse.factor))<1e-12);
+    }
+  }
+}
+result.inverseChecks={inverseRules,roundTrips,maxRoundTripResidual,maxInverseErrorResidual};
+assert.equal(math.explain(math.inverse(math.recommend(180,.02),1/180)),'×10 → ÷9 → ÷100 → halve');
+assert.ok(math.inverse(math.adaptive(.9272,.02),1/.9272).error>.03,'Forward 3% tolerance does not transfer to inverse');
+assert.equal(math.adaptive(1/7.524,.02),null);
+assert.ok(math.inverse(math.adaptive(7.524,.02),1/7.524),'CNY still needs its harder counter-rule');
 result.grid=[];
 for(const tolerance of [.01,.03]){
   let found=0,worstError=0,maxEffort=0;
@@ -77,4 +117,5 @@ fs.writeFileSync(path.join(out,'evaluation.json'),JSON.stringify(result,null,2)+
 console.log('Catalogue:',result.stats,'\nRate date:',fixture.date,'Currencies:',currencies.length,'Directed pairs:',pairs.length);
 console.table(result.examples.map(row=>({pair:`${row.from}→${row.to}`,rate:row.rate.toPrecision(7),easy:row.easy?.rule,error:row.easy?row.easy.errorPercent.toFixed(3)+'%':'—',precise:row.accurate?.rule,preciseError:row.accurate?row.accurate.errorPercent.toFixed(3)+'%':'—'})));
 console.table(result.benchmarks);console.table(result.grid);
+console.log('Paired coverage:',result.pairedSummary,'\nInverse checks:',result.inverseChecks);
 console.log('Full results: build/MentalMath/evaluation.json');

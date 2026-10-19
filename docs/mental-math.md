@@ -1,4 +1,4 @@
-# Mental currency conversion rules: conservative revision
+# Mental currency conversion rules and exact counter-rules
 
 This experiment now distinguishes numerical approximation coverage from human usability. The first version found a short expression for every sampled conversion by treating eighths, sixths, and other derived operations as cheap. User feedback rejected that definition of “easy”. Its earlier 100% numerical coverage is **not evidence of 100% usability**.
 
@@ -12,7 +12,7 @@ The [primary research note](mental-arithmetic-evidence.md) reviews five experime
 - Keep an explicit estimate of how many values the described method retains. Triple is represented as doubling plus the original; ×5 as halving plus a decimal shift. These are specified strategies, not claims that everyone uses them or that every action takes equal time.
 - Limit the default to four estimated elementary actions, including a possible decimal shift, and at most one percentage correction. Do not label three consecutive halvings as one cheap division; the vocabulary also limits standalone halvings to two per rule.
 - Target 2% relative error, allowing up to 3% only when it saves at least one estimated action. Within a work budget, prefer fewer retained values, then lower error.
-- If no rule meets the error and effort limits, return **no simple rule**. Numerical coverage is allowed to fall rather than silently introducing unfamiliar arithmetic.
+- If no rule meets the error and effort limits, return **no independently simple rule**. Every rule found in either direction still gets its exact counter-rule, even when the inverse needs harder arithmetic. Keep these two categories explicit.
 
 ## Reproducibility
 
@@ -32,9 +32,27 @@ The [primary research note](mental-arithmetic-evidence.md) reviews five experime
 
 The adaptive 2%/3% policy covers **517/870** directions, with **353** explicit gaps. Of the covered directions, 374 stay within 2%. Median absolute error among covered directions is 1.31%. These are mathematical approximation errors, not observed human error rates.
 
-## Selected generated rules
+## Every rule includes its counter-rule
 
-Apply instructions left to right; every correction refers to the current result. Positive error means too high, negative error too low. A compact percentage label must be accompanied by its underlying procedure in the demo.
+For every generated rule, reverse the instruction order and undo each step. This is always displayed beside the original rule, including when no independently easy reverse rule exists. The demo shows independently searched rules for both directions and lets the two example amounts be changed separately. Swapping currencies also swaps those amounts.
+
+Use integer operations in the inverse instructions: undoing −10% is **×10 → ÷9**, rather than decimal division or reciprocal fraction notation. Undoing +10% is **×10 → ÷11**, and undoing +50% is **×2 → ÷3**. Changing the percentage sign does not undo a correction. Harder counter-rules remain visible without claiming they meet the conservative vocabulary or assigning them an invented difficulty score.
+
+| Original direction and rule | Exact counter-rule | Counter-rule's signed reference error |
+| --- | --- | ---: |
+| EUR → JPY: ×2 → ×100 → −10% | JPY → EUR: ×10 → ÷9 → ÷100 → halve | −1.211% |
+| EUR → USD: +10% | USD → EUR: ×10 → ÷11 | +2.300% |
+| EUR → CHF: −10% | CHF → EUR: ×10 → ÷9 | +3.022% |
+| EUR → CNY: ×5 → +50% | CNY → EUR: ×2 → ÷3 → ÷5 | +0.320% |
+| EUR → KRW: ×1,000 → +50% | KRW → EUR: ×2 → ÷3 → ÷1,000 | −0.066% |
+
+“Exact” means that the counter-rule undoes the approximate rule; both still approximate the reference conversion. For rule multiplier `f` and reference rate `r`, forward error is `e = f/r − 1`. Reverse error is `r/f − 1 = −e/(1+e)`, so it must be recalculated. For example, the CHF counter-rule exceeds 3% even though the original stays within 3%; the demo flags this rather than hiding the counter-rule.
+
+At the adaptive default, **517/870** directions have independently easy rules. Including counter-rules makes **632/870 (72.6%)** directions available: **115** additional directions have a harder inverse only, while **238** have neither. Of the 517 counter-rules, **8** exceed 3% reference error; the largest is **3.0903%**. This increases mathematical availability, not measured human usability.
+
+## Selected independently generated rules
+
+This table lists independently searched shortcuts only; missing entries can still have a counter-rule as described above. Apply instructions left to right; every correction refers to the current result. Positive error means too high, negative error too low. A compact percentage label must be accompanied by its underlying procedure in the demo.
 
 | Direction | Reference rate | Conservative rule | Signed error | Estimated actions |
 | --- | ---: | --- | ---: | ---: |
@@ -69,6 +87,7 @@ For example, EUR → USD now uses +10% (−2.248%), and JPY → EUR uses `÷100 
 
 - The hypothetical 180 JPY/EUR example remains exact with `×2 → ×100 → −10%`.
 - Generated instructions are checked by executing their steps for amounts 0, 0.01, 1, 5, 19.99, 100, and 9,999 on every covered 3% conversion. The relative discrepancy from the derived factor is approximately 2.2 × 10^-16, consistent with floating-point rounding.
+- The inverse checks cover **726 generated rules** (adaptive and 1% searches, including synthetic identity, 180, and decimal-scale cases) and **5,082 round trips** over the seven amounts. The largest relative round-trip discrepancy is about **2.2 × 10^-16**. Rational numerators/denominators and the reverse-error formula are also checked; this verifies the arithmetic, not ease of use.
 - The runner also samples 1,001 logarithmically spaced rates from 10^-6 to 10^6 and reports gaps. It does not silently enlarge the default operation budget.
 - Approximation error is amount-independent without intermediate rounding. Human difficulty is **not** amount-independent: operands, carries, retained intermediate values and familiarity matter. The present prototype only shows the specific amount’s intermediate values; it does not yet have a scientifically calibrated amount-sensitive difficulty score.
 - Four elementary actions is a product limit, not an experimentally established boundary. Counts such as “double once” operate at the instruction level; multidigit carries can add further work.
