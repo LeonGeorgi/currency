@@ -2,6 +2,21 @@ import XCTest
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testTwentyPercentCorrectionsAreEligibleAndRoundPracticalExamples() throws {
+        for (percent, factor, rounded) in [(20, 1.2, 24.0), (-20, 0.8, 16.0)] {
+            let rule = MentalRule(operations: [.percent(percent)])
+            XCTAssertTrue(rule.isSimple)
+            XCTAssertEqual(rule.factor, factor, accuracy: 1e-12)
+            XCTAssertEqual(rule.effort, 3.5)
+            XCTAssertEqual(rule.trace(amount: 80).last!.value, 80 * factor, accuracy: 1e-12)
+            let step = try XCTUnwrap(rule.trace(amount: 19.99, roundingForMentalMath: true).last)
+            XCTAssertEqual(step.calculation, .percent(percent))
+            XCTAssertEqual(step.value, rounded, accuracy: 1e-12)
+            XCTAssertTrue(step.isApproximate)
+        }
+        XCTAssertEqual(try XCTUnwrap(MentalRules.recommend(rate: 1.2)).operations, [.percent(20)])
+    }
+
     func testDecimalDivisionsComeFirstAndMultiplicationsLast() {
         let original: [MentalRule.Operation] = [.multiply(100), .percent(-10), .divide(2), .divide(1000), .multiply(2), .multiply(10), .divide(10)]
         let rule = MentalRule(operations: original)
