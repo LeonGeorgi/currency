@@ -183,7 +183,7 @@ private struct MentalCalculationFlow: View {
     private func number(at index: Int) -> String {
         if index == 0 || index == values.count - 1 {
             let code = index == 0 ? from : to
-            return values[index].formatted(.number.precision(.fractionLength(0...CurrencyDisplay.fractionDigits(for: code))))
+            return values[index].formatted(.number.precision(.fractionLength(CurrencyDisplay.fractionDigits(for: code))))
         }
         return values[index].formatted(.number.precision(.significantDigits(1...12)))
     }

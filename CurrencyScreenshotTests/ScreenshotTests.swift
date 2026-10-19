@@ -85,6 +85,13 @@ final class ScreenshotTests: XCTestCase {
         app.launchArguments = ["--screenshots", "-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]
         app.launch()
         waitForRates(in: app)
+        let presets = app.scrollViews["amount-presets"]
+        let ten = app.buttons["amount-preset-10.0"]
+        for _ in 0..<8 {
+            if presets.frame.contains(ten.frame) { break }
+            presets.swipeRight()
+        }
+        ten.tap()
         app.buttons["comparison-JPY"].tap()
         let forward = app.descendants(matching: .any).matching(identifier: "mental-calculation").firstMatch
         let reverse = app.descendants(matching: .any).matching(identifier: "mental-calculation-reverse").firstMatch
@@ -94,7 +101,7 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["JPY → EUR"].exists)
         XCTAssertTrue(app.staticTexts["mental-exact-result"].exists)
         XCTAssertTrue(app.staticTexts["mental-exact-result-reverse"].exists)
-        XCTAssertTrue(app.staticTexts["mental-exact-result-reverse"].label.contains("99,71"))
+        XCTAssertTrue(app.staticTexts["mental-exact-result-reverse"].label.contains("9,97"))
         XCTAssertTrue(app.staticTexts["current-exchange-rate"].label.contains("164,48"))
         XCTAssertEqual(forward.frame.minY, reverse.frame.minY, accuracy: 1)
         XCTAssertGreaterThan(reverse.frame.minX, forward.frame.minX)
