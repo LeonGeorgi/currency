@@ -2,12 +2,32 @@ import XCTest
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testJPYToCZKPrefersTheShorterThirdRuleWithinTheErrorLimit() throws {
+        // Frankfurter JPY/CZK snapshot dated 2026-10-16; no network in tests.
+        let rate = 0.13678
+        let rule = try XCTUnwrap(MentalRules.recommend(rate: rate))
+        let multiplications = MentalRule(operations: [.divide(100), .multiply(2), .multiply(7)])
+        XCTAssertEqual(rule.operations, [.divide(10), .third(increasing: true)])
+        XCTAssertEqual(rule.effort, multiplications.effort)
+        XCTAssertLessThan(rule.displayedSteps, multiplications.displayedSteps)
+        XCTAssertLessThanOrEqual(abs(rule.error(at: rate)), 0.03)
+        XCTAssertEqual(rule.trace(amount: 300).map(\.value), [30, 40])
+        // The longer subtract-third variant is equivalent, but is not preferable.
+        let alternative = MentalRule(operations: [.divide(10), .multiply(2), .third(increasing: false)])
+        XCTAssertTrue(alternative.isSimple)
+        XCTAssertEqual(rule.factor, alternative.factor, accuracy: 1e-12)
+        // A shorter rule must still respect the accuracy limit.
+        let outside = try XCTUnwrap(MentalRules.recommend(rate: 0.14))
+        XCTAssertGreaterThan(abs(rule.error(at: 0.14)), 0.03)
+        XCTAssertLessThanOrEqual(abs(outside.error(at: 0.14)), 0.03)
+    }
+
     func testThirdCorrectionsAreSelectedAndHaveExactCounterRules() throws {
         for (increasing, factor, expected) in [(true, 4.0 / 3, 120.0), (false, 2.0 / 3, 60.0)] {
             let rule = try XCTUnwrap(MentalRules.recommend(rate: factor))
             XCTAssertEqual(rule.operations, [.third(increasing: increasing)])
             XCTAssertTrue(rule.isSimple)
-            XCTAssertGreaterThan(rule.effort, MentalRule.Operation.percent(20).effort)
+            XCTAssertGreaterThan(rule.effort, MentalRule.Operation.percent(10).effort)
             XCTAssertEqual(rule.trace(amount: 90).last!.value, expected, accuracy: 1e-12)
             XCTAssertEqual(rule.inverse.factor, 1 / factor, accuracy: 1e-12)
             for amount in [0.01, 19.99, 90, -12.5] {

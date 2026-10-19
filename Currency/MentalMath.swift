@@ -30,7 +30,7 @@ struct MentalRule: Codable, Hashable, Sendable {
             case .multiply(let n): n == 2 || Self.isDecimalShift(n) ? 1 : [5, 8, 9].contains(n) ? 3 : n <= 9 ? 2 : 4
             case .divide(let n): n == 2 || Self.isDecimalShift(n) ? 1 : n == 4 ? 3 : n == 5 ? 4 : [3, 6].contains(n) ? 5 : [7, 8, 9].contains(n) ? 6 : 7
             case .compensate: 2.5
-            case .third: 4.5
+            case .third: 3
             case .percent: Double(actions) + Double(retained - 1) * 0.5
             }
         }
@@ -250,12 +250,12 @@ enum MentalRules {
                 if let current = best {
                     if rule.effort > current.effort { continue }
                     if rule.effort == current.effort {
-                        if rule.retained > current.retained { continue }
-                        if rule.retained == current.retained {
-                            if error > abs(current.error(at: rate)) { continue }
-                            if error == abs(current.error(at: rate)) {
-                                if rule.displayedSteps > current.displayedSteps { continue }
-                                if rule.displayedSteps == current.displayedSteps && rule.actions >= current.actions { continue }
+                        if rule.displayedSteps > current.displayedSteps { continue }
+                        if rule.displayedSteps == current.displayedSteps {
+                            if rule.retained > current.retained { continue }
+                            if rule.retained == current.retained {
+                                if error > abs(current.error(at: rate)) { continue }
+                                if error == abs(current.error(at: rate)) && rule.actions >= current.actions { continue }
                             }
                         }
                     }
