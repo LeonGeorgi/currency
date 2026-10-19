@@ -109,7 +109,7 @@ For a fork with its own Pages address, add `--base-url https://OWNER.github.io/R
 
 ### Validation performed
 
-The app build and forty-four unit tests have passed with Xcode 27 on an iPhone 17 simulator running iOS 27. The deployment target is iOS 26; testing on a physical iOS 26 device is still pending.
+The app build and forty-seven unit tests have passed with Xcode 27 on an iPhone 17 simulator running iOS 27. The deployment target is iOS 26; testing on a physical iOS 26 device is still pending.
 
 Appearance checks cover color selection, the icon preview, alternate Home Screen icons, and persistence after relaunch. All five localizations have been checked in the simulator, including number, date, and currency formatting. Compiler-extracted interface text, placeholders, and compiled language resources have been checked in both the app and widget.
 

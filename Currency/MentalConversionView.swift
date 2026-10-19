@@ -49,9 +49,10 @@ struct MentalConversionView: View {
             Text(verbatim: "\(pair.base) → \(pair.quote)")
                 .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
             if let rule {
-                MentalCalculationFlow(rule: rule, amount: amount, from: pair.base, to: pair.quote, compact: compact)
+                let example = rule.example(amount: amount, from: pair.base, rate: rate)
+                MentalCalculationFlow(example: example, from: pair.base, to: pair.quote, compact: compact)
                     .accessibilityIdentifier(reverse ? "mental-calculation-reverse" : "mental-calculation")
-                Text("Genau: \(CurrencyDisplay.amount(amount * rate, code: pair.quote))")
+                Text("Genau: \(CurrencyDisplay.amount(example.exactResult, code: pair.quote))")
                     .font(.caption).foregroundStyle(.secondary)
                     .accessibilityIdentifier(reverse ? "mental-exact-result-reverse" : "mental-exact-result")
             } else {
@@ -74,8 +75,7 @@ struct MentalConversionView: View {
 /// Native text and layout; only the curved connector needs a small custom Shape.
 private struct MentalCalculationFlow: View {
     @Environment(\.appAccent) private var accent
-    let rule: MentalRule
-    let amount: Double
+    let example: MentalRule.Example
     let from: String
     let to: String
     var compact = false
@@ -84,7 +84,8 @@ private struct MentalCalculationFlow: View {
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
-    private var steps: [MentalRule.Step] { rule.trace(amount: amount, roundingForMentalMath: true) }
+    private var amount: Double { example.amount }
+    private var steps: [MentalRule.Step] { example.steps }
     private var values: [Double] { [amount] + steps.map(\.value) }
 
     private func isApproximate(at index: Int) -> Bool {

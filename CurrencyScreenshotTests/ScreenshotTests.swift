@@ -79,6 +79,36 @@ final class ScreenshotTests: XCTestCase {
         app.terminate()
     }
 
+    func testRoundingExamplesUseVisibleStartingAmounts() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["--screenshots", "--screenshot-rounding-examples", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+        app.launch()
+        let yen = app.buttons["comparison-JPY"]
+        XCTAssertTrue(yen.waitForExistence(timeout: 10))
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "label CONTAINS %@", "¥2"), object: yen)
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 10), .completed)
+        yen.tap()
+        let reverse = app.descendants(matching: .any).matching(identifier: "mental-calculation-reverse").firstMatch
+        XCTAssertTrue(reverse.waitForExistence(timeout: 10))
+        XCTAssertTrue(reverse.label.contains("¥2"))
+        XCTAssertTrue(reverse.label.contains("20.00"))
+        XCTAssertFalse(reverse.label.contains("21.00"))
+        XCTAssertTrue(app.staticTexts["mental-exact-result-reverse"].label.contains("19.14"))
+        capture("rounding-yen")
+
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.buttons["comparison-USD"].tap()
+        XCTAssertTrue(reverse.waitForExistence(timeout: 10))
+        XCTAssertTrue(reverse.label.contains("$0.01"))
+        XCTAssertTrue(reverse.label.contains("0.015"))
+        XCTAssertTrue(reverse.label.contains("15.00"))
+        XCTAssertFalse(reverse.label.contains("0.0198"))
+        XCTAssertTrue(app.staticTexts["mental-exact-result-reverse"].label.contains("15.15"))
+        capture("rounding-dollar")
+        app.terminate()
+    }
+
     func testMentalConversionShowsBothDirections() {
         continueAfterFailure = false
         let app = XCUIApplication()

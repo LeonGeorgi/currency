@@ -2,6 +2,45 @@ import XCTest
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testYenExampleUsesTheDisplayedStartingAmountForBothResults() throws {
+        // Reproduces ARS → JPY: 20 ARS produces a mental starting value of 2.1 JPY,
+        // which the currency formatter shows as 2 JPY.
+        let rate = 2.1 / 20.1
+        let reverseAmount = MentalRule.roundedForMentalMath(20 * rate)
+        let reverse = try XCTUnwrap(MentalRules.recommendDirections(rate: rate).reverse)
+        XCTAssertEqual(reverse.operations, [.multiply(10)])
+        let example = reverse.example(amount: reverseAmount, from: "JPY", rate: 1 / rate)
+        XCTAssertEqual(CurrencyDisplay.amount(example.amount, code: "JPY", locale: Locale(identifier: "en_US")), "¥2")
+        XCTAssertEqual(example.amount, 2)
+        XCTAssertEqual(example.steps.last?.value, 20)
+        XCTAssertEqual(example.exactResult, 2 / rate, accuracy: 1e-12)
+    }
+
+    func testDollarExampleDoesNotUseHiddenFractionsOfACent() throws {
+        // Reproduces the second screenshot: 0.0132 USD is displayed as 0.01 USD.
+        let rate = 0.0132 / 20
+        let reverse = try XCTUnwrap(MentalRules.recommendDirections(rate: rate).reverse)
+        XCTAssertEqual(reverse.operations, [.percent(50), .multiply(1000)])
+        let example = reverse.example(amount: MentalRule.roundedForMentalMath(20 * rate), from: "USD", rate: 1 / rate)
+        XCTAssertEqual(example.amount, 0.01)
+        XCTAssertEqual(example.steps[0].value, 0.015, accuracy: 1e-12)
+        XCTAssertEqual(example.steps.last?.value, 15)
+        XCTAssertEqual(example.exactResult, 0.01 / rate, accuracy: 1e-12)
+    }
+
+    func testExampleStartingAmountsMatchNativeCurrencyFormatting() throws {
+        let rule = MentalRule(operations: [.multiply(10)])
+        let english = Locale(identifier: "en_US")
+        for currency in ["JPY", "USD", "ARS", "KWD"] {
+            for amount in [0, 0.0001, 0.0132, 1.005, 2.1, 2.5, 2.675, 3.5, 999.995, -0.0132, -2.5] {
+                let example = rule.example(amount: amount, from: currency, rate: 10)
+                let displayed = CurrencyDisplay.amount(amount, code: currency, locale: english)
+                let parsed = try FloatingPointFormatStyle<Double>.Currency(code: currency).locale(english).parseStrategy.parse(displayed)
+                XCTAssertEqual(example.amount, parsed, accuracy: max(abs(parsed) * 1e-12, 1e-15), "\(amount) \(currency)")
+            }
+        }
+    }
+
     func testPercentCorrectionBeatsChainedMultiplicationsForYen() throws {
         let chain = MentalRule(operations: [.multiply(2), .multiply(8), .multiply(10)])
         let correction = MentalRule(operations: [.multiply(2), .percent(-20), .multiply(100)])

@@ -26,15 +26,22 @@ enum ScreenshotSupport {
         guard isEnabled else { return }
         if ProcessInfo.processInfo.arguments.contains("--keep-screenshot-settings") { return }
         defaults.removePersistentDomain(forName: "de.leon.currency.screenshots")
-        defaults.set("EUR", forKey: "baseCurrency")
-        defaults.set(CurrencySelection.storeQuotes(["USD", "JPY", "GBP", "CHF"]), forKey: "quoteCurrencies")
-        defaults.set(100.0, forKey: "conversionAmount")
+        defaults.set(usesRoundingExamples ? "ARS" : "EUR", forKey: "baseCurrency")
+        defaults.set(CurrencySelection.storeQuotes(usesRoundingExamples ? ["JPY", "USD"] : ["USD", "JPY", "GBP", "CHF"]), forKey: "quoteCurrencies")
+        defaults.set(usesRoundingExamples ? 20.0 : 100.0, forKey: "conversionAmount")
         #endif
     }()
 
     #if DEBUG
+    private static let usesRoundingExamples = ProcessInfo.processInfo.arguments.contains("--screenshot-rounding-examples")
     static let date = Date(timeIntervalSince1970: 1_792_108_800) // 16 October 2026, UTC
-    private static let euroRates = ["EUR": 1.0, "USD": 1.16842, "JPY": 164.48, "GBP": 0.86627, "CHF": 0.93341]
+    private static let euroRates: [String: Double] = {
+        if usesRoundingExamples {
+            // Synthetic ratios reproduce both reported hidden-fraction bugs.
+            return ["EUR": 1, "ARS": 1000, "JPY": (2.1 / 20.1) * 1000, "USD": 0.66]
+        }
+        return ["EUR": 1.0, "USD": 1.16842, "JPY": 164.48, "GBP": 0.86627, "CHF": 0.93341]
+    }()
 
     static func rate(for pair: CurrencyPair) -> Rate {
         Rate(date: date, base: pair.base, quote: pair.quote,

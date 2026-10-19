@@ -236,6 +236,16 @@ enum CurrencyDisplay {
         return Int(digits)
     }
 
+    /// Normalize a worked example to the monetary value actually shown to the reader.
+    static func roundedAmount(_ value: Double, code: String) -> Double {
+        guard value.isFinite else { return value }
+        var decimal = Decimal(value)
+        guard !decimal.isNaN else { return value }
+        var rounded = Decimal()
+        NSDecimalRound(&rounded, &decimal, fractionDigits(for: code), .bankers)
+        return NSDecimalNumber(decimal: rounded).doubleValue
+    }
+
     /// Foundation supplies the currency's usual fraction digits (e.g. EUR 2, JPY 0, KWD 3).
     static func amount(_ value: Double, code: String, locale: Locale = .current) -> String {
         value.formatted(.currency(code: code).locale(locale))

@@ -177,6 +177,19 @@ struct MentalRule: Codable, Hashable, Sendable {
         return result
     }
 
+    struct Example: Sendable {
+        let amount: Double
+        let steps: [Step]
+        let exactResult: Double
+    }
+
+    func example(amount: Double, from currency: String, rate: Double) -> Example {
+        let displayedAmount = CurrencyDisplay.roundedAmount(amount, code: currency)
+        return Example(amount: displayedAmount,
+                       steps: trace(amount: displayedAmount, roundingForMentalMath: true),
+                       exactResult: displayedAmount * rate)
+    }
+
     var inverse: MentalRule {
         func multiply(_ n: Int) -> [Operation] {
             switch n { case 1: []; case 20: [.multiply(2), .multiply(10)]; default: [.multiply(n)] }
