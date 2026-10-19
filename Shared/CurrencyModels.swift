@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 
 struct Currency: Codable, Hashable, Identifiable, Sendable {
     let code: String
@@ -228,7 +229,20 @@ enum CurrencyDisplay {
         return formatter.currencySymbol ?? code
     }
 
+    static func fractionDigits(for code: String) -> Int {
+        var digits: Int32 = 2
+        var roundingIncrement = 0.0
+        guard CFNumberFormatterGetDecimalInfoForCurrencyCode(code.uppercased() as CFString, &digits, &roundingIncrement) else { return 2 }
+        return Int(digits)
+    }
+
+    /// Foundation supplies the currency's usual fraction digits (e.g. EUR 2, JPY 0, KWD 3).
     static func amount(_ value: Double, code: String, locale: Locale = .current) -> String {
+        value.formatted(.currency(code: code).locale(locale))
+    }
+
+    /// A reference rate can be smaller than the currency's minor unit.
+    static func rate(_ value: Double, code: String, locale: Locale = .current) -> String {
         value.formatted(.currency(code: code).locale(locale).precision(.significantDigits(1...12)))
     }
 }

@@ -197,7 +197,7 @@ struct ContentView: View {
             .accessibilityLabel("Von: \(base). Währung auswählen")
 
             VStack(spacing: 6) {
-                TextField("Betrag", value: $amount, format: .currency(code: base).precision(.significantDigits(1...12)))
+                TextField("Betrag", value: $amount, format: .currency(code: base))
                     .font(.system(size: amountFontSize, weight: .medium, design: .rounded))
                     .monospacedDigit()
                     .multilineTextAlignment(.center)
@@ -222,7 +222,7 @@ struct ContentView: View {
                             editingAmount = false
                             amount = preset
                         } label: {
-                            Text(CurrencyDisplay.amount(preset, code: base))
+                            Text(preset, format: .currency(code: base).precision(.fractionLength(0...CurrencyDisplay.fractionDigits(for: base))))
                                 .font(.system(.subheadline, design: .rounded, weight: .semibold))
                                 .fixedSize()
                         }

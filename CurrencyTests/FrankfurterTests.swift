@@ -182,8 +182,31 @@ final class FrankfurterTests: XCTestCase {
         XCTAssertEqual(CurrencyDisplay.flag(for: "CHF"), "🇨🇭")
         XCTAssertEqual(CurrencyDisplay.flag(for: "XAF"), "🌐")
         XCTAssertEqual(CurrencyDisplay.flag(for: "invalid"), "🌐")
-        XCTAssertEqual(CurrencyDisplay.amount(0.0000123456789, code: "USD", locale: locale), "$0.0000123456789")
-        XCTAssertEqual(CurrencyDisplay.amount(1.12291234567, code: "EUR", locale: locale), "€1.12291234567")
+        XCTAssertEqual(CurrencyDisplay.rate(0.0000123456789, code: "USD", locale: locale), "$0.0000123456789")
+        XCTAssertEqual(CurrencyDisplay.rate(1.12291234567, code: "EUR", locale: locale), "€1.12291234567")
+    }
+
+    func testAmountsUseTheUsualCurrencyPrecisionInDifferentLocales() {
+        let english = Locale(identifier: "en_US")
+        let german = Locale(identifier: "de_DE")
+        XCTAssertEqual(CurrencyDisplay.fractionDigits(for: "EUR"), 2)
+        XCTAssertEqual(CurrencyDisplay.fractionDigits(for: "JPY"), 0)
+        XCTAssertEqual(CurrencyDisplay.fractionDigits(for: "kwd"), 3)
+        XCTAssertEqual(CurrencyDisplay.amount(99.7081712062, code: "EUR", locale: english), "€99.71")
+        XCTAssertEqual(CurrencyDisplay.amount(1, code: "USD", locale: english), "$1.00")
+        XCTAssertEqual(CurrencyDisplay.amount(0.0000123456789, code: "USD", locale: english), "$0.00")
+        XCTAssertEqual(CurrencyDisplay.amount(-12.3456, code: "USD", locale: english), "-$12.35")
+        func germanAmount(_ value: Double, _ code: String) -> String {
+            CurrencyDisplay.amount(value, code: code, locale: german).replacingOccurrences(of: "\u{00a0}", with: " ")
+        }
+        XCTAssertEqual(germanAmount(99.7081712062, "EUR"), "99,71 €")
+        XCTAssertEqual(germanAmount(16448.49, "JPY"), "16.448 ¥")
+        XCTAssertEqual(germanAmount(164.8, "KRW"), "165 ₩")
+        XCTAssertEqual(germanAmount(1.234567, "KWD"), "1,235 KWD")
+        XCTAssertEqual(germanAmount(1.234567, "BHD"), "1,235 BHD")
+        XCTAssertEqual(germanAmount(1.234567, "CHF"), "1,23 CHF")
+        // Rate formatting remains precise even for a currency normally shown without fractions.
+        XCTAssertEqual(CurrencyDisplay.rate(164.48, code: "JPY", locale: german).replacingOccurrences(of: "\u{00a0}", with: " "), "164,48 ¥")
     }
 
     func testWidgetLinkCarriesFractionalAmountAndKeepsLegacyLinksCompatible() {

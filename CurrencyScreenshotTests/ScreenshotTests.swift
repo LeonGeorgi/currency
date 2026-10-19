@@ -94,6 +94,8 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["JPY → EUR"].exists)
         XCTAssertTrue(app.staticTexts["mental-exact-result"].exists)
         XCTAssertTrue(app.staticTexts["mental-exact-result-reverse"].exists)
+        XCTAssertTrue(app.staticTexts["mental-exact-result-reverse"].label.contains("99,71"))
+        XCTAssertTrue(app.staticTexts["current-exchange-rate"].label.contains("164,48"))
         XCTAssertEqual(forward.frame.minY, reverse.frame.minY, accuracy: 1)
         XCTAssertGreaterThan(reverse.frame.minX, forward.frame.minX)
         let image = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
@@ -114,8 +116,8 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(twenty.waitForExistence(timeout: 5))
         twenty.tap()
         XCTAssertTrue(twenty.isSelected)
-        XCTAssertEqual((app.textFields.firstMatch.value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), "20 €")
-        XCTAssertTrue(app.buttons["comparison-JPY"].label.contains("3.289,6"))
+        XCTAssertEqual((app.textFields.firstMatch.value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), "20,00 €")
+        XCTAssertTrue(app.buttons["comparison-JPY"].label.contains("3.290"))
         let amountStrip = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         amountStrip.name = "amount-presets-liquid-glass"
         amountStrip.lifetime = .keepAlways
@@ -131,7 +133,7 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(one.isHittable)
         one.tap()
         XCTAssertTrue(one.isSelected)
-        XCTAssertTrue(app.buttons["comparison-JPY"].label.contains("164,48"))
+        XCTAssertTrue(app.buttons["comparison-JPY"].label.contains("164"))
 
         app.buttons["JPY zur Hauptwährung machen"].tap()
         let hundred = app.buttons["amount-preset-100.0"]

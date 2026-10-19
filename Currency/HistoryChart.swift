@@ -29,7 +29,7 @@ struct HistoryChart: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
                 if let selected {
-                    Text(CurrencyDisplay.amount(selected.rate, code: quote))
+                    Text(CurrencyDisplay.rate(selected.rate, code: quote))
                         .font(.title2.weight(.semibold)).monospacedDigit()
                     Text(selected.date, format: APIDate.displayStyle)
                         .font(.caption).foregroundStyle(.secondary)
@@ -49,7 +49,7 @@ struct HistoryChart: View {
                     LineMark(x: .value(String(localized: "Datum"), rate.date), y: .value(String(localized: "Kurs"), rate.rate))
                         .foregroundStyle(accent.color)
                         .accessibilityLabel(rate.date.formatted(APIDate.displayStyle))
-                        .accessibilityValue(CurrencyDisplay.amount(rate.rate, code: quote))
+                        .accessibilityValue(CurrencyDisplay.rate(rate.rate, code: quote))
                 }
                 if let selected {
                     RuleMark(x: .value(String(localized: "Datum"), selected.date)).foregroundStyle(.secondary.opacity(0.5))
@@ -85,7 +85,8 @@ struct CurrencyHistoryView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text(verbatim: "\(CurrencyDisplay.flag(for: pair.base)) 1 \(CurrencyDisplay.symbol(for: pair.base)) · \(pair.base)")
                             .font(.subheadline).foregroundStyle(.secondary)
-                        Text(CurrencyDisplay.amount(latest.rate, code: pair.quote))
+                        Text(CurrencyDisplay.rate(latest.rate, code: pair.quote))
+                            .accessibilityIdentifier("current-exchange-rate")
                             .font(.system(.largeTitle, design: .rounded, weight: .medium))
                             .monospacedDigit().minimumScaleFactor(0.5).lineLimit(1)
                     }

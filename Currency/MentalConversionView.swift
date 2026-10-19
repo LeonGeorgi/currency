@@ -118,7 +118,7 @@ private struct MentalCalculationFlow: View {
             Grid(horizontalSpacing: compact ? 3 : 5, verticalSpacing: gap) {
                 ForEach(values.indices, id: \.self) { index in
                     GridRow(alignment: .firstTextBaseline) {
-                        Text((isApproximate(at: index) ? "≈ " : "") + values[index].formatted(.number.precision(.significantDigits(1...12))))
+                        Text((isApproximate(at: index) ? "≈ " : "") + number(at: index))
                             .gridColumnAlignment(.trailing)
                             .frame(height: valueHeight)
                         Text(index == 0 ? CurrencyDisplay.symbol(for: from) : index == values.count - 1 ? CurrencyDisplay.symbol(for: to) : "")
@@ -178,6 +178,14 @@ private struct MentalCalculationFlow: View {
                 }
             }
         }
+    }
+
+    private func number(at index: Int) -> String {
+        if index == 0 || index == values.count - 1 {
+            let code = index == 0 ? from : to
+            return values[index].formatted(.number.precision(.fractionLength(0...CurrencyDisplay.fractionDigits(for: code))))
+        }
+        return values[index].formatted(.number.precision(.significantDigits(1...12)))
     }
 
     private func value(at index: Int) -> String {

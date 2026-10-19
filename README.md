@@ -38,7 +38,7 @@ Captured automatically by native UI tests using fixed sample data. Only small JP
 
 ## Using the app
 
-- The base currency and amount appear at the top, with comparison currencies in separate cards below. The amount and currency selection are saved between launches. Rates and converted amounts include currency symbols and up to twelve significant digits. Native flag emoji identify currencies in both the app and widget; the euro uses the EU flag, and currencies without a single associated country use a globe.
+- The base currency and amount appear at the top, with comparison currencies in separate cards below. The amount and currency selection are saved between launches. Amounts include currency symbols and use the currency’s standard decimal places from Apple’s formatting data (for example, two for EUR, zero for JPY, and three for KWD). Exchange rates retain up to twelve significant digits. Formatting does not reduce calculation precision. Native flag emoji identify currencies in both the app and widget; the euro uses the EU flag, and currencies without a single associated country use a globe.
 - Swipe the full-width Liquid Glass amount strip below the input to choose a typical amount. The strip snaps to each button as you scroll. Presets follow a 1–2–5 sequence, scaled roughly to the currency's value against the euro: EUR offers 1, 2, 5 … 200; JPY offers 100, 200, 500 … 20,000. The selected amount is highlighted, saved, and synchronized with the widget. You can still enter any amount directly.
 - Tap the base currency code to change it. Use the **plus button** to select multiple comparison currencies. Both pickers support searching by currency name or code.
 - Tap **Edit** at the top left to show native reorder handles and delete buttons. The saved order determines which three currencies appear in the widget. An empty comparison list is also saved.
@@ -109,7 +109,7 @@ For a fork with its own Pages address, add `--base-url https://OWNER.github.io/R
 
 ### Validation performed
 
-The app build and forty-three unit tests have passed with Xcode 27 on an iPhone 17 simulator running iOS 27. The deployment target is iOS 26; testing on a physical iOS 26 device is still pending.
+The app build and forty-four unit tests have passed with Xcode 27 on an iPhone 17 simulator running iOS 27. The deployment target is iOS 26; testing on a physical iOS 26 device is still pending.
 
 Appearance checks cover color selection, the icon preview, alternate Home Screen icons, and persistence after relaunch. All five localizations have been checked in the simulator, including number, date, and currency formatting. Compiler-extracted interface text, placeholders, and compiled language resources have been checked in both the app and widget.
 
