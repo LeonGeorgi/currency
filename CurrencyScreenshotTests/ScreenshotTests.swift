@@ -92,10 +92,16 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(twenty.isSelected)
         XCTAssertEqual((app.textFields.firstMatch.value as? String)?.replacingOccurrences(of: "\u{00a0}", with: " "), "20 €")
         XCTAssertTrue(app.buttons["comparison-JPY"].label.contains("3.289,6"))
+        let amountStrip = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+        amountStrip.name = "amount-presets-liquid-glass"
+        amountStrip.lifetime = .keepAlways
+        add(amountStrip)
+        XCTAssertEqual(presets.frame.minX, 0, accuracy: 1)
+        XCTAssertEqual(presets.frame.maxX, app.frame.maxX, accuracy: 1)
 
         let one = app.buttons["amount-preset-1.0"]
-        for _ in 0..<5 {
-            if one.isHittable { break }
+        for _ in 0..<8 {
+            if presets.frame.contains(one.frame) { break }
             presets.swipeRight()
         }
         XCTAssertTrue(one.isHittable)
@@ -107,7 +113,7 @@ final class ScreenshotTests: XCTestCase {
         let hundred = app.buttons["amount-preset-100.0"]
         XCTAssertTrue(hundred.waitForExistence(timeout: 5))
         for _ in 0..<5 {
-            if hundred.isHittable { break }
+            if presets.frame.contains(hundred.frame) { break }
             presets.swipeRight()
         }
         hundred.tap()

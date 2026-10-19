@@ -33,7 +33,11 @@ struct ContentView: View {
             List {
                 Section {
                     primaryCurrency
-                        .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 12, trailing: 20))
+                        .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                    amountPresets
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 32, trailing: 0))
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
@@ -204,47 +208,53 @@ struct ContentView: View {
                     .accessibilityLabel("Betrag in \(base)")
                 Text(currencyName(base)).font(.subheadline).foregroundStyle(.secondary)
             }
+        }
+        .padding(.top, 20)
+        .padding(.bottom, 12)
+    }
 
-            ScrollViewReader { proxy in
-                ScrollView(.horizontal) {
-                    HStack(spacing: 8) {
-                        ForEach(presetAmounts, id: \.self) { preset in
-                            Button {
-                                editingAmount = false
-                                amount = preset
-                            } label: {
-                                Text(CurrencyDisplay.amount(preset, code: base))
-                                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
-                                    .fixedSize()
-                            }
-                            .buttonStyle(.bordered)
-                            .buttonBorderShape(.capsule)
-                            .controlSize(.large)
-                            .tint(amount == preset ? accent.color : Color.primary)
-                            .accessibilityAddTraits(amount == preset ? [.isSelected] : [])
-                            .accessibilityHint("Als Betrag verwenden")
-                            .accessibilityIdentifier("amount-preset-\(preset)")
-                            .id(preset)
+    private var amountPresets: some View {
+        ScrollViewReader { proxy in
+            ScrollView(.horizontal) {
+                HStack(spacing: 8) {
+                    ForEach(presetAmounts, id: \.self) { preset in
+                        Button {
+                            editingAmount = false
+                            amount = preset
+                        } label: {
+                            Text(CurrencyDisplay.amount(preset, code: base))
+                                .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                                .fixedSize()
                         }
+                        .buttonStyle(.glass)
+                        .buttonBorderShape(.capsule)
+                        .controlSize(.large)
+                        .tint(amount == preset ? accent.color : Color.primary)
+                        .accessibilityAddTraits(amount == preset ? [.isSelected] : [])
+                        .accessibilityHint("Als Betrag verwenden")
+                        .accessibilityIdentifier("amount-preset-\(preset)")
+                        .id(preset)
                     }
-                    .padding(.vertical, 4)
                 }
-                .scrollIndicators(.hidden)
-                .accessibilityIdentifier("amount-presets")
-                .onAppear {
-                    if presetAmounts.contains(amount) { proxy.scrollTo(amount, anchor: .center) }
-                }
-                .onChange(of: base) { _, _ in
-                    if let first = presetAmounts.first { proxy.scrollTo(first, anchor: .leading) }
-                }
-                .onChange(of: presetAmounts) { _, values in
-                    if let target = values.contains(amount) ? amount : values.first {
-                        proxy.scrollTo(target, anchor: .center)
-                    }
+                .scrollTargetLayout()
+                .padding(.vertical, 8)
+            }
+            .scrollIndicators(.hidden)
+            .contentMargins(.horizontal, 20, for: .scrollContent)
+            .scrollTargetBehavior(.viewAligned(limitBehavior: .alwaysByOne))
+            .accessibilityIdentifier("amount-presets")
+            .onAppear {
+                if presetAmounts.contains(amount) { proxy.scrollTo(amount, anchor: .center) }
+            }
+            .onChange(of: base) { _, _ in
+                if let first = presetAmounts.first { proxy.scrollTo(first, anchor: .leading) }
+            }
+            .onChange(of: presetAmounts) { _, values in
+                if let target = values.contains(amount) ? amount : values.first {
+                    proxy.scrollTo(target, anchor: .center)
                 }
             }
         }
-        .padding(.vertical, 20)
     }
 
     private func comparisonCard(_ quote: String) -> some View {
