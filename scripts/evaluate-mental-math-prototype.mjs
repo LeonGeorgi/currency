@@ -102,8 +102,24 @@ result.inverseChecks={inverseRules,roundTrips,maxRoundTripResidual,maxInverseErr
 const subtractTen=math.operations.find(step=>step.short==='−10%');
 assert.equal(math.explain(math.inverse({factor:.9,numerator:9,denominator:10,steps:[subtractTen]},1/.9)),'×10 → ÷9');
 assert.ok(math.inverse(math.adaptive(.9272,.02),1/.9272).error>.03,'Forward 3% tolerance does not transfer to inverse');
-assert.equal(math.adaptive(1/7.524,.02),null);
-assert.ok(math.inverse(math.adaptive(7.524,.02),1/7.524),'CNY still needs its harder counter-rule');
+assert.ok(math.inverse(math.adaptive(7.524,.02),1/7.524),'Every forward rule still needs its counter-rule');
+result.directMultipliers=[];
+for(let factor=3;factor<=10;factor++){
+  const direct=factor===10?math.recommend(10,0):math.operations.find(step=>step.direct&&step.n===factor);
+  const rule=factor===10?direct:{factor,numerator:factor,denominator:1,steps:[direct],effort:direct.difficulty,primitiveSteps:1,retained:1,error:0};
+  assert.ok(direct,`Direct ×${factor} must exist`);
+  assert.equal(math.trace(rule,19.99).at(-1).value,19.99*factor);
+  const inverse=math.inverse(rule,1/factor);
+  const decomposition=math.choose(factor,0,3,4,false);
+  for(const amount of [0,.01,1,5,19.99,100,9999]){
+    assert.ok(Math.abs(execute(inverse,execute(rule,amount))-amount)/Math.max(1,Math.abs(amount))<1e-12);
+    if(decomposition)assert.ok(Math.abs(execute(decomposition,amount)-amount*factor)/Math.max(1,Math.abs(amount*factor))<1e-12);
+  }
+  result.directMultipliers.push({factor,direct:summarize(rule),preferred:summarize(math.recommend(factor,0)),decomposition:summarize(decomposition),inverse:summarize(inverse)});
+}
+assert.ok(!math.operations.some(step=>step.kind==='divide'&&step.d>=3),'Hard integer division must not enter the easy vocabulary');
+assert.equal(math.recommend(7,0).primitiveSteps,1);
+assert.equal(math.explain(math.recommend(7,0)),'×7');
 result.rewrites=[];
 for(const [label,factor] of [['×5',5],['÷5',.2],['×25',25],['÷25',.04],['×50',50],['÷50',.02],['×4',4],['−50%',.5],['×9',9],['×11',11],['×99',99],['×101',101]]){
   const rule=math.recommend(factor,0);
@@ -131,4 +147,5 @@ console.table(result.examples.map(row=>({pair:`${row.from}→${row.to}`,rate:row
 console.table(result.benchmarks);console.table(result.grid);
 console.log('Paired coverage:',result.pairedSummary,'\nInverse checks:',result.inverseChecks);
 console.table(result.rewrites.map(({label,rule,primitiveSteps,retained})=>({label,rule,primitiveSteps,retained})));
+console.table(result.directMultipliers.map(({factor,direct,preferred,decomposition,inverse})=>({factor,direct:direct.rule,effort:direct.effort,preferred:preferred.rule,alternative:decomposition?.rule,inverse:inverse.rule})));
 console.log('Full results: build/MentalMath/evaluation.json');
