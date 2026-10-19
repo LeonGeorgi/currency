@@ -5,7 +5,7 @@ struct MentalConversionView: View {
     let rate: Double
     let amount: Double
     // Recompute cached choices when the difficulty model changes.
-    @AppStorage("mentalRules.v3") private var storedRules = Data()
+    @AppStorage("mentalRules.v4") private var storedRules = Data()
     @State private var rule: MentalRule?
     @State private var isLoading = true
 
@@ -159,6 +159,7 @@ private struct MentalCalculationFlow: View {
         case .multiply(let n): return "× \(n.formatted())"
         case .divide(let n): return "÷ \(n.formatted())"
         case .percent(let p): return "\(p < 0 ? "−" : "+") \(abs(p).formatted()) %"
+        case .third(let increasing): return increasing ? "+ ⅓" : "− ⅓"
         case .add(let n): return "+ \(n < 0 ? "(\(number(n)))" : number(n))"
         case .subtract(let n): return "− \(n < 0 ? "(\(number(n)))" : number(n))"
         }
@@ -168,6 +169,7 @@ private struct MentalCalculationFlow: View {
         case .multiply(let n): String(localized: "Mal \(n)")
         case .divide(let n): String(localized: "Geteilt durch \(n)")
         case .percent(let p): p < 0 ? String(localized: "\(abs(p)) Prozent abziehen") : String(localized: "\(p) Prozent hinzufügen")
+        case .third(let increasing): increasing ? String(localized: "Ein Drittel hinzufügen") : String(localized: "Ein Drittel abziehen")
         case .add(let n): String(localized: "\(n.formatted()) addieren")
         case .subtract(let n): String(localized: "\(n.formatted()) abziehen")
         }

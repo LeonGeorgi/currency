@@ -2,6 +2,33 @@ import XCTest
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testThirdCorrectionsAreSelectedAndHaveExactCounterRules() throws {
+        for (increasing, factor, expected) in [(true, 4.0 / 3, 120.0), (false, 2.0 / 3, 60.0)] {
+            let rule = try XCTUnwrap(MentalRules.recommend(rate: factor))
+            XCTAssertEqual(rule.operations, [.third(increasing: increasing)])
+            XCTAssertTrue(rule.isSimple)
+            XCTAssertGreaterThan(rule.effort, MentalRule.Operation.percent(20).effort)
+            XCTAssertEqual(rule.trace(amount: 90).last!.value, expected, accuracy: 1e-12)
+            XCTAssertEqual(rule.inverse.factor, 1 / factor, accuracy: 1e-12)
+            for amount in [0.01, 19.99, 90, -12.5] {
+                let converted = rule.trace(amount: amount).last!.value
+                XCTAssertEqual(rule.inverse.trace(amount: converted).last!.value, amount, accuracy: 1e-10)
+            }
+            XCTAssertEqual(try JSONDecoder().decode(MentalRule.self, from: JSONEncoder().encode(rule)), rule)
+        }
+    }
+
+    func testThirdCorrectionRoundsAndKeepsDecimalMultiplicationLast() {
+        let rule = MentalRule(operations: [.multiply(10), .third(increasing: true)])
+        XCTAssertEqual(rule.operations, [.third(increasing: true), .multiply(10)])
+        let steps = rule.trace(amount: 19.99, roundingForMentalMath: true)
+        XCTAssertEqual(steps.first!.value, 26.7, accuracy: 1e-12)
+        XCTAssertEqual(steps.last!.value, 267, accuracy: 1e-12)
+        XCTAssertTrue(steps.allSatisfy(\.isApproximate))
+        XCTAssertFalse(MentalRule(operations: [.third(increasing: true), .percent(10)]).isSimple)
+        XCTAssertFalse(MentalRule(operations: [.third(increasing: false), .third(increasing: false)]).isSimple)
+    }
+
     func testPreferTwentyPercentReductionOverEightTenths() throws {
         let correction = MentalRule(operations: [.percent(-20)])
         let eightTenths = MentalRule(operations: [.multiply(8), .divide(10)])

@@ -5,34 +5,40 @@ import Foundation
 struct MentalRule: Codable, Hashable, Sendable {
     enum Operation: Codable, Hashable, Sendable {
         case multiply(Int), divide(Int), percent(Int), compensate(Int)
+        case third(increasing: Bool)
 
         var factor: Double {
             switch self {
             case .multiply(let n), .compensate(let n): Double(n)
             case .divide(let n): 1 / Double(n)
             case .percent(let p): 1 + Double(p) / 100
+            case .third(let increasing): increasing ? 4.0 / 3 : 2.0 / 3
             }
         }
         var actions: Int {
             switch self {
-            case .compensate: 2
+            case .compensate, .third: 2
             case .percent(let p): switch abs(p) { case 10, 50: 2; case 15: 4; default: 3 }
             default: 1
             }
         }
         var retained: Int {
-            switch self { case .percent(let p): abs(p) == 15 ? 3 : 2; case .compensate: 2; default: 1 }
+            switch self { case .percent(let p): abs(p) == 15 ? 3 : 2; case .compensate, .third: 2; default: 1 }
         }
         var effort: Double {
             switch self {
             case .multiply(let n): n == 2 || Self.isDecimalShift(n) ? 1 : [5, 8, 9].contains(n) ? 3 : n <= 9 ? 2 : 4
             case .divide(let n): n == 2 || Self.isDecimalShift(n) ? 1 : n == 4 ? 3 : n == 5 ? 4 : [3, 6].contains(n) ? 5 : [7, 8, 9].contains(n) ? 6 : 7
             case .compensate: 2.5
+            case .third: 4.5
             case .percent: Double(actions) + Double(retained - 1) * 0.5
             }
         }
         var isScale: Bool {
             switch self { case .multiply(let n), .divide(let n): Self.isDecimalShift(n); default: false }
+        }
+        var isCorrection: Bool {
+            switch self { case .percent, .third: true; default: false }
         }
         static func isDecimalShift(_ n: Int) -> Bool {
             guard n >= 10 else { return false }
@@ -46,18 +52,21 @@ struct MentalRule: Codable, Hashable, Sendable {
             case .divide(let n): n == 2 || Self.isDecimalShift(n)
             case .percent(let p): [5, 10, 15, 20, 25, 50, -5, -10, -15, -20, -25].contains(p)
             case .compensate(let n): [3, 9, 11, 99, 101].contains(n)
+            case .third: true
             }
         }
     }
 
     enum Calculation: Equatable, Sendable {
         case multiply(Int), divide(Int), percent(Int), add(Double), subtract(Double)
+        case third(increasing: Bool)
 
         func apply(to value: Double) -> Double {
             switch self {
             case .multiply(let n): value * Double(n)
             case .divide(let n): value / Double(n)
             case .percent(let p): value * (1 + Double(p) / 100)
+            case .third(let increasing): increasing ? value + value / 3 : value - value / 3
             case .add(let n): value + n
             case .subtract(let n): value - n
             }
@@ -98,7 +107,7 @@ struct MentalRule: Codable, Hashable, Sendable {
     var isSimple: Bool {
         operations.allSatisfy(\.isSimple) && actions <= 4 && effort <= 6 && displayedSteps <= 4 &&
         operations.filter { $0 == .divide(2) }.count <= 2 && operations.filter { !$0.isScale }.count <= 3 &&
-        operations.filter { if case .percent = $0 { true } else { false } }.count <= 1
+        operations.filter(\.isCorrection).count <= 1
     }
 
     /// Keep examples compact without rounding small currency amounts down to zero.
@@ -125,6 +134,7 @@ struct MentalRule: Codable, Hashable, Sendable {
             case .multiply(let n): calculations = [.multiply(n)]
             case .divide(let n): calculations = [.divide(n)]
             case .percent(let p): calculations = [.percent(p)]
+            case .third(let increasing): calculations = [.third(increasing: increasing)]
             case .compensate(let n):
                 let saved = roundingForMentalMath ? Self.roundedForMentalMath(value) : value
                 isApproximate = isApproximate || abs(saved - value) > abs(value) * 1e-12
@@ -153,6 +163,8 @@ struct MentalRule: Codable, Hashable, Sendable {
             case .percent(let p):
                 let divisor = 100 + p, common = MentalRules.gcd(100, divisor)
                 return multiply(100 / common) + (divisor / common == 1 ? [] : [.divide(divisor / common)])
+            case .third(let increasing):
+                return [.multiply(3), .divide(2)] + (increasing ? [.divide(2)] : [])
             }
         })
     }
@@ -169,13 +181,15 @@ enum MentalRules {
     private static let catalogue: [(factor: Double, rule: MentalRule)] = {
         let vocabulary: [MentalRule.Operation] = [.multiply(2), .divide(2)] +
             (3...9).map { .multiply($0) } + [3, 9, 11, 99, 101].map { .compensate($0) } +
-            [5, 10, 15, 20, 25, 50, -5, -10, -15, -20, -25].map { .percent($0) }
+            [5, 10, 15, 20, 25, 50, -5, -10, -15, -20, -25].map { .percent($0) } +
+            [.third(increasing: true), .third(increasing: false)]
         var choices: [Key: MentalRule] = [:]
         func rational(_ operation: MentalRule.Operation) -> (Int, Int) {
             switch operation {
             case .multiply(let n), .compensate(let n): (n, 1)
             case .divide(let n): (1, n)
             case .percent(let p): (100 + p, 100)
+            case .third(let increasing): (increasing ? 4 : 2, 3)
             }
         }
         func visit(_ numerator: Int, _ denominator: Int, _ steps: [MentalRule.Operation]) {
@@ -189,7 +203,7 @@ enum MentalRules {
                 while !halves.isEmpty, let index = multiplying.firstIndex(of: .multiply(2)) {
                     halves.removeLast(); multiplying.remove(at: index)
                 }
-                let corrections = steps.filter { if case .percent = $0 { true } else { false } }
+                let corrections = steps.filter(\.isCorrection)
                 let scaleSteps: [MentalRule.Operation] = shift == 0 ? [] : [shift > 0 ? .multiply(scale) : .divide(scale)]
                 let rule = MentalRule(operations: halves + multiplying + scaleSteps + corrections)
                 guard rule.isSimple else { continue }
@@ -203,7 +217,7 @@ enum MentalRules {
             }
             guard steps.count < 3 else { return }
             for operation in vocabulary {
-                if case .percent = operation, steps.contains(where: { if case .percent = $0 { true } else { false } }) { continue }
+                if operation.isCorrection, steps.contains(where: \.isCorrection) { continue }
                 if operation == .divide(2), steps.filter({ $0 == .divide(2) }).count >= 2 { continue }
                 let (n, d) = rational(operation)
                 if let last = steps.last {
