@@ -119,7 +119,7 @@ struct ContentView: View {
                 }
             }
             .navigationDestination(for: CurrencyPair.self) { pair in
-                CurrencyHistoryView(pair: pair, latest: store.quotes.first { $0.quote == pair.quote }?.rate)
+                CurrencyHistoryView(pair: pair, latest: store.quotes.first { $0.quote == pair.quote }?.rate, amount: amount)
             }
             .refreshable { await refresh() }
             .sheet(item: $picker) { kind in

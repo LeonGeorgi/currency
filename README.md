@@ -7,9 +7,9 @@ A small native iPhone and iPad app for iOS 26 and later, built with SwiftUI, Swi
 
 Captured automatically by native UI tests using fixed sample data. Only small JPEG previews (320 pixels wide) load here; click an image to open the full-resolution PNG. Images are hosted on GitHub Pages and are not stored in the Git repository.
 
-| Overview | History | Editing | Dark mode |
-| --- | --- | --- | --- |
-| <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/overview-light.jpg" alt="English · Overview" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/history.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/history.jpg" alt="English · History" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/editing.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/editing.jpg" alt="English · Editing" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/overview-dark.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/overview-dark.jpg" alt="English · Dark mode" width="180"></a> |
+| Overview | Mental conversion | History | Editing | Dark mode |
+| --- | --- | --- | --- | --- |
+| <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/overview-light.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/overview-light.jpg" alt="English · Overview" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/mental-math.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/mental-math.jpg" alt="English · Mental conversion" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/history.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/history.jpg" alt="English · History" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/editing.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/editing.jpg" alt="English · Editing" width="180"></a> | <a href="https://leongeorgi.github.io/currency/screenshots/originals/en/overview-dark.png"><img src="https://leongeorgi.github.io/currency/screenshots/previews/en/overview-dark.jpg" alt="English · Dark mode" width="180"></a> |
 
 | German | Japanese | Spanish | French |
 | --- | --- | --- | --- |
@@ -18,13 +18,13 @@ Captured automatically by native UI tests using fixed sample data. Only small JP
 <details>
 <summary>All full-resolution originals (PNG)</summary>
 
-| Language | Overview | History | Editing | Dark mode |
-| --- | --- | --- | --- | --- |
-| English | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/en/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/en/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/en/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/en/overview-dark.png) |
-| German | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/de/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/de/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/de/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/de/overview-dark.png) |
-| Japanese | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/ja/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/ja/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-dark.png) |
-| Spanish | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/es/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/es/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/es/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/es/overview-dark.png) |
-| French | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-light.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/fr/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/fr/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-dark.png) |
+| Language | Overview | Mental conversion | History | Editing | Dark mode |
+| --- | --- | --- | --- | --- | --- |
+| English | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/en/overview-light.png) | [Mental conversion](https://leongeorgi.github.io/currency/screenshots/originals/en/mental-math.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/en/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/en/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/en/overview-dark.png) |
+| German | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/de/overview-light.png) | [Mental conversion](https://leongeorgi.github.io/currency/screenshots/originals/de/mental-math.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/de/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/de/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/de/overview-dark.png) |
+| Japanese | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-light.png) | [Mental conversion](https://leongeorgi.github.io/currency/screenshots/originals/ja/mental-math.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/ja/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/ja/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/ja/overview-dark.png) |
+| Spanish | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/es/overview-light.png) | [Mental conversion](https://leongeorgi.github.io/currency/screenshots/originals/es/mental-math.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/es/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/es/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/es/overview-dark.png) |
+| French | [Overview](https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-light.png) | [Mental conversion](https://leongeorgi.github.io/currency/screenshots/originals/fr/mental-math.png) | [History](https://leongeorgi.github.io/currency/screenshots/originals/fr/history.png) | [Editing](https://leongeorgi.github.io/currency/screenshots/originals/fr/editing.png) | [Dark mode](https://leongeorgi.github.io/currency/screenshots/originals/fr/overview-dark.png) |
 
 </details>
 
@@ -42,7 +42,7 @@ Captured automatically by native UI tests using fixed sample data. Only small JP
 - Tap the base currency code to change it. Use the **plus button** to select multiple comparison currencies. Both pickers support searching by currency name or code.
 - Tap **Edit** at the top left to show native reorder handles and delete buttons. The saved order determines which three currencies appear in the widget. An empty comparison list is also saved.
 - The target button (`scope`) on each comparison card makes that currency the base. The previous base takes its place in the comparison list; the other currencies and entered amount are preserved.
-- Tap a comparison currency to open its history. Choose a period and touch the chart to inspect individual rates. The chart shows the rate for one unit of the base currency, regardless of the entered amount. Five-year charts use weekly data points; ten-year charts use monthly points. **Start at zero** controls the vertical axis baseline and saves each change immediately, including across app restarts.
+- Tap a comparison currency to open its details, including a worked mental-conversion example and its history. Choose a period and touch the chart to inspect individual rates. The chart shows the rate for one unit of the base currency, regardless of the entered amount. Five-year charts use weekly data points; ten-year charts use monthly points. **Start at zero** controls the vertical axis baseline and saves each change immediately, including across app restarts.
 - Pull down to refresh or choose **… → Refresh**. Data source information and widget instructions are available under **… → About Currencies**.
 - To add a widget, touch and hold the Home Screen, then choose **Edit → Add Widget → Currencies**. Small widgets show a compact conversion list; medium widgets have a separate amount area and comparison cards. Both use native SwiftUI layouts and system backgrounds for light and dark mode. The widget follows the app's amount, base currency, and first three comparison currencies in their saved order. Tapping it opens the app without replacing its full currency list.
 
@@ -62,7 +62,8 @@ Changes in the app request a widget refresh. Amount edits are briefly debounced 
 
 ## Project structure
 
-- `Currency/`: SwiftUI views and observable application state.
+- `Currency/`: SwiftUI views, observable application state, and the mental-conversion rule generator. Worked examples use the saved amount, visible intermediate values and curved operation arrows; a compact sketch uses handwritten figures and short curved arrows beside the intermediate amounts. Useful rules are remembered while their reference error stays within 3%.
+- `Currency/Resources/Fonts/`: Patrick Hand supplies the handwriting used only in mental-conversion sketches. Its SIL Open Font License and attribution are included with the app.
 - `Currency/AppIcon.icon`: A layered Icon Composer document included directly in Xcode, with separate coin and currency symbol layers. Apple's Icon Composer supplies lighting, materials, and system appearances; dark mode uses a separate high-contrast symbol fill.
 - `Design/Icon/`: SVG source layers and a Swift script that regenerates the vector paths. Run `swift Design/Icon/generate.swift Currency/AppIcon.icon/Assets` with the document closed in Icon Composer. The euro symbol is optically aligned using its rounded bowl; the adjustment is preserved in the generator.
 - `Shared/`: API client, models, settings, and cache compiled into both the app and widget.
@@ -73,7 +74,7 @@ Changes in the app request a widget refresh. Amount edits are briefly debounced 
 
 ## Experiments
 
-The [mental currency conversion experiment](docs/mental-math.md) evaluates automatically generated rules for mental arithmetic across 870 currency conversions. Its conservative revision excludes unfamiliar fractions and counts the work behind percentage corrections. The [scientific evidence note](docs/mental-arithmetic-evidence.md) distinguishes experimental findings from the generator's design assumptions. An offline interactive prototype lives on a separate branch. This is exploratory work and is not part of the app UI.
+The [mental currency conversion experiment](docs/mental-math.md) evaluates automatically generated rules for mental arithmetic across 870 currency conversions. Its conservative revision excludes unfamiliar fractions and counts the work behind percentage corrections. The [scientific evidence note](docs/mental-arithmetic-evidence.md) distinguishes experimental findings from the generator's design assumptions. An offline interactive prototype lives on a separate branch. The app now uses a Swift implementation of the accepted vocabulary and relative weights. Its detail view shows a worked example without exposing scores or technical explanations. The production search limits examples to four arithmetic actions, four displayed steps and six effort points; those limits are design heuristics, not measured human thresholds.
 
 ## Testing
 
@@ -81,7 +82,7 @@ The [mental currency conversion experiment](docs/mental-math.md) evaluates autom
 
 The [GitHub workflow](.github/workflows/screenshots.yml) captures screenshots when app code, translations, documentation, or screenshot scripts change on `main` or in a pull request. You can also start it from **Actions → App screenshots → Run workflow**. On the default branch, original PNGs and small JPEG previews are published directly from the build artifact to [GitHub Pages](https://leongeorgi.github.io/currency/). The workflow has no Git write permission and creates no commits. The README uses stable external URLs whose contents update after each successful deployment. Pull requests provide a downloadable `screenshot-gallery` workflow artifact; native test results are attached as well.
 
-The gallery covers the overview, history, editing, and dark mode overview in all five languages on an iPhone 17. English screenshots lead the README, followed by an overview in each other language. Generated files live only in the ignored `build/Screenshots/Site/` directory: `screenshots/originals/` holds unchanged simulator PNGs, and `screenshots/previews/` holds JPEGs resized to 320 pixels wide. The README embeds eight small previews and links to all twenty originals. The published [screenshots/manifest.json](https://leongeorgi.github.io/currency/screenshots/manifest.json) records image dimensions and file sizes. The Pages home page displays the complete gallery.
+The gallery covers the overview, mental conversion, history, editing, and dark mode overview in all five languages on an iPhone 17. English screenshots lead the README, followed by an overview in each other language. Generated files live only in the ignored `build/Screenshots/Site/` directory: `screenshots/originals/` holds unchanged simulator PNGs, and `screenshots/previews/` holds JPEGs resized to 320 pixels wide. The README embeds nine small previews and links to all twenty-five originals. The published [screenshots/manifest.json](https://leongeorgi.github.io/currency/screenshots/manifest.json) records image dimensions and file sizes. The Pages home page displays the complete gallery.
 
 Run locally with Xcode 26 or later:
 
@@ -103,7 +104,7 @@ For a fork with its own Pages address, add `--base-url https://OWNER.github.io/R
 
 ### Validation performed
 
-The app build and fifteen unit tests have passed with Xcode 27 on an iPhone 17 simulator running iOS 27. The deployment target is iOS 26; testing on a physical iOS 26 device is still pending.
+The app build and twenty-one unit tests have passed with Xcode 27 on an iPhone 17 simulator running iOS 27. The deployment target is iOS 26; testing on a physical iOS 26 device is still pending.
 
 All five localizations have been checked in the simulator, including number, date, and currency formatting. Compiler-extracted interface text, placeholders, and compiled language resources have been checked in both the app and widget.
 

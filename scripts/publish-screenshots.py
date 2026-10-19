@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parents[1]
 LANGUAGES = {"en": "English", "de": "German", "ja": "Japanese", "es": "Spanish", "fr": "French"}
-SCENES = {"overview-light": "Overview", "history": "History", "editing": "Editing", "overview-dark": "Dark mode"}
+SCENES = {"overview-light": "Overview", "mental-math": "Mental conversion", "history": "History", "editing": "Editing", "overview-dark": "Dark mode"}
 PRIMARY_LANGUAGE = "en"
 START = "<!-- screenshots:start -->"
 END = "<!-- screenshots:end -->"
@@ -32,7 +32,7 @@ def png_size(path):
 def collect(attachments):
     manifest = json.loads((attachments / "manifest.json").read_text())
     found = {}
-    pattern = re.compile(r"(de|en|ja|es|fr)--(overview-light|overview-dark|history|editing)(?=[_.\s-]|$)")
+    pattern = re.compile(r"(de|en|ja|es|fr)--(overview-light|overview-dark|mental-math|history|editing)(?=[_.\s-]|$)")
     for test in manifest:
         for attachment in test["attachments"]:
             match = pattern.search(attachment["suggestedHumanReadableName"])

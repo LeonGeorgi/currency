@@ -31,6 +31,11 @@
 		D59B66CB9E718E09EB7D0D61 /* Shared/ConversionSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31C307A0ACDEA84FB8D28E59 /* Shared/ConversionSettings.swift */; };
 		E54D0C275D844F21896B3610 /* Currency/ScreenshotSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54D0C275D844F21896B3611; };
 		E54D0C275D844F21896B3612 /* CurrencyScreenshotTests/ScreenshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E54D0C275D844F21896B3613; };
+		A11CE0000000000000000102 /* Currency/MentalMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0000000000000000101; };
+		A11CE0000000000000000104 /* Currency/MentalConversionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0000000000000000103; };
+		A11CE0000000000000000106 /* CurrencyTests/MentalMathTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0000000000000000105; };
+		A11CE0000000000000000202 /* Currency/Resources/Fonts/PatrickHand-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = A11CE0000000000000000201; };
+		A11CE0000000000000000204 /* Currency/Resources/Fonts/PatrickHand-OFL.txt in Resources */ = {isa = PBXBuildFile; fileRef = A11CE0000000000000000203; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -89,6 +94,11 @@
 		E54D0C275D844F21896B3611 /* Currency/ScreenshotSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Currency/ScreenshotSupport.swift; sourceTree = "<group>"; };
 		E54D0C275D844F21896B3613 /* CurrencyScreenshotTests/ScreenshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyScreenshotTests/ScreenshotTests.swift; sourceTree = "<group>"; };
 		E54D0C275D844F21896B3614 /* CurrencyScreenshotTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = CurrencyScreenshotTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A11CE0000000000000000101 /* Currency/MentalMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Currency/MentalMath.swift; sourceTree = "<group>"; };
+		A11CE0000000000000000103 /* Currency/MentalConversionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Currency/MentalConversionView.swift; sourceTree = "<group>"; };
+		A11CE0000000000000000105 /* CurrencyTests/MentalMathTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurrencyTests/MentalMathTests.swift; sourceTree = "<group>"; };
+		A11CE0000000000000000201 /* Currency/Resources/Fonts/PatrickHand-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = Currency/Resources/Fonts/PatrickHand-Regular.ttf; sourceTree = "<group>"; };
+		A11CE0000000000000000203 /* Currency/Resources/Fonts/PatrickHand-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Currency/Resources/Fonts/PatrickHand-OFL.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -120,6 +130,11 @@
 		B28B7AF69320201D1CF206EB = {
 			isa = PBXGroup;
 			children = (
+				A11CE0000000000000000203 /* Currency/Resources/Fonts/PatrickHand-OFL.txt */,
+				A11CE0000000000000000201 /* Currency/Resources/Fonts/PatrickHand-Regular.ttf */,
+				A11CE0000000000000000105 /* CurrencyTests/MentalMathTests.swift */,
+				A11CE0000000000000000103 /* Currency/MentalConversionView.swift */,
+				A11CE0000000000000000101 /* Currency/MentalMath.swift */,
 				E54D0C275D844F21896B3611 /* Currency/ScreenshotSupport.swift */,
 				E54D0C275D844F21896B3613 /* CurrencyScreenshotTests/ScreenshotTests.swift */,
 				01C75E79F35887ED141FF437 /* Shared/CurrencyModels.swift */,
@@ -269,6 +284,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A11CE0000000000000000204 /* Currency/Resources/Fonts/PatrickHand-OFL.txt in Resources */,
+				A11CE0000000000000000202 /* Currency/Resources/Fonts/PatrickHand-Regular.ttf in Resources */,
 				AA400DFD4219F700A8EA7668 /* Shared/Assets.xcassets in Resources */,
 				6BC6E351F65845E595B5F07A /* Currency/AppIcon.icon in Resources */,
 				9A5B8380DAEA42D9BDB18410 /* Shared/Localizable.xcstrings in Resources */,
@@ -294,6 +311,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A11CE0000000000000000104 /* Currency/MentalConversionView.swift in Sources */,
+				A11CE0000000000000000102 /* Currency/MentalMath.swift in Sources */,
 				E54D0C275D844F21896B3610 /* Currency/ScreenshotSupport.swift in Sources */,
 				D59B66CB9E718E09EB7D0D61 /* Shared/ConversionSettings.swift in Sources */,
 				F2490F2B85D7741D374D1AC6 /* Currency/ContentView.swift in Sources */,
@@ -322,6 +341,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A11CE0000000000000000106 /* CurrencyTests/MentalMathTests.swift in Sources */,
 				BA3D48BCC1329676B201DA5F /* CurrencyTests/FrankfurterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

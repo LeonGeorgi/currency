@@ -20,7 +20,7 @@ The [primary research note](mental-arithmetic-evidence.md) reviews five experime
 - Reference date: **2026-10-16**, using the same [Frankfurter EUR snapshot](https://api.frankfurter.dev/v1/latest?base=EUR) as the initial experiment. This revision deliberately reuses the dated snapshot to isolate the model change.
 - 29 foreign quotes plus EUR: **30 currencies and 870 directed conversions**. Cross-rates are derived from a single EUR snapshot and are not independent market observations.
 - The [experiment branch](https://github.com/LeonGeorgi/currency/tree/codex/mental-math-prototype) contains the standalone offline `Shared/MentalMathPrototype.html` and `scripts/evaluate-mental-math-prototype.mjs`.
-- Run `node scripts/evaluate-mental-math-prototype.mjs` on that branch. Results are written to ignored `build/MentalMath/evaluation.json`. The HTML includes the same pure module and the full source snapshot. No production app feature or telemetry is introduced.
+- Run `node scripts/evaluate-mental-math-prototype.mjs` on that branch. Results are written to ignored `build/MentalMath/evaluation.json`. The HTML includes the same pure module and the full source snapshot. The HTML remains an offline experiment. The app now has a Swift rule generator and worked-example view; see the production integration notes below.
 
 ## Results with the four-action budget
 
@@ -168,4 +168,12 @@ This table lists independently searched shortcuts only; missing entries can stil
 
 Compare direct multiplication, decomposition and harder reverse division with target users using round prices and awkward values such as 19.99 and 87.50. Counterbalance the rule and amount order; record successful answers, time, abandonment, and perceived ease. Distinguish first use from practice. Use these observations to decide whether optional derived corrections such as 15% and 25% are acceptable and to calibrate any numerical difficulty weights. The studies in the evidence note motivate this procedure; they do not replace it.
 
-The prototype remains on its separate branch. The main branch contains the findings and scientific evidence only.
+## Production integration
+
+The offline prototype remains on its experiment branch. The app now uses `Currency/MentalMath.swift` for a Swift implementation of the accepted vocabulary and relative operation/memory weights. Eligible app examples have at most four arithmetic actions, four displayed steps, three non-scale search operations and six effort points. Hard integer division remains available in exact inverses. The UI contains no difficulty score.
+
+The currency detail view places an always-visible calculation above the chart, using the saved amount, intermediate values, and short, subtly uneven curved arrows labeled with the arithmetic. Patrick Hand (the Rudolstadt notes typeface) gives the compact example a handwritten appearance. The app shows only the selected forward rule; reverse controls are omitted to keep the example compact. The exact conversion is shown separately. Twelve significant digits are preserved in the example; intermediate calculations are never rounded.
+
+Rules are saved per currency pair and reused while their reference error stays within 3% and they still meet the production complexity limits. The first search runs off the main thread. Screenshots use isolated sample data and do not save rule choices. A larger-type layout presents the same ordered steps with full-width amounts. VoiceOver reads amounts and operations in calculation order.
+
+The production limits make its eligible set a subset of the experiment’s; do not report the experiment’s numerical coverage as app coverage. Unit tests exercise cross-rate bounds, saved-value procedures, inverse round trips, rule stability and persistence coding. Screenshot tests capture the worked example and chart separately in all five languages.

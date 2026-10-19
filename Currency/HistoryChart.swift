@@ -72,6 +72,7 @@ struct HistoryChart: View {
 struct CurrencyHistoryView: View {
     let pair: CurrencyPair
     let latest: Rate?
+    let amount: Double
     @State private var store = ExchangeStore()
     @State private var period: RatePeriod = .month
     @AppStorage("chartStartsAtZero") private var chartStartsAtZero = false
@@ -90,6 +91,13 @@ struct CurrencyHistoryView: View {
                     .padding(.vertical, 8)
                 } footer: {
                     Text("Stand: \(latest.date.formatted(APIDate.displayStyle))")
+                }
+            }
+            if let latest, latest.base == pair.base, latest.quote == pair.quote {
+                Section {
+                    MentalConversionView(pair: pair, rate: latest.rate, amount: amount)
+                } header: {
+                    Label("Faustregel", systemImage: "lightbulb")
                 }
             }
             Section {

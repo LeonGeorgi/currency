@@ -3,6 +3,7 @@
 <plist version="1.0"><dict>
 <key>AppGroupIdentifier</key><string>$(APP_GROUP_IDENTIFIER)</string>
 <key>CFBundleURLTypes</key><array><dict><key>CFBundleURLName</key><string>$(PRODUCT_BUNDLE_IDENTIFIER)</string><key>CFBundleURLSchemes</key><array><string>currency</string></array></dict></array>
+<key>UIAppFonts</key><array><string>PatrickHand-Regular.ttf</string></array>
 <key>UILaunchScreen</key><dict/>
 <key>UISupportedInterfaceOrientations</key><array><string>UIInterfaceOrientationPortrait</string><string>UIInterfaceOrientationLandscapeLeft</string><string>UIInterfaceOrientationLandscapeRight</string></array>
 </dict></plist>

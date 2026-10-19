@@ -15,6 +15,14 @@ final class ScreenshotTests: XCTestCase {
             capture("\(language)--overview-light")
 
             app.buttons["comparison-JPY"].tap()
+            let calculation = app.descendants(matching: .any).matching(identifier: "mental-calculation").firstMatch
+            XCTAssertTrue(calculation.waitForExistence(timeout: 10))
+            XCTAssertFalse(app.descendants(matching: .any).matching(identifier: "mental-direction").firstMatch.exists)
+            capture("\(language)--mental-math")
+            for _ in 0..<5 {
+                if app.switches["chart-starts-at-zero"].isHittable { break }
+                app.swipeUp()
+            }
             XCTAssertTrue(app.staticTexts["history-summary"].waitForExistence(timeout: 10))
             capture("\(language)--history")
 
