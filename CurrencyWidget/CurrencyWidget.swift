@@ -1,5 +1,14 @@
 import SwiftUI
 import WidgetKit
+import AppIntents
+
+struct WidgetAmountIntent: WidgetConfigurationIntent {
+    static let title: LocalizedStringResource = "Wechselkurse"
+    static let description = IntentDescription("Eigener Betrag mit den ersten drei Vergleichswährungen aus der App.")
+
+    @Parameter(title: "Betrag", default: "1", inputOptions: .init(keyboardType: .numbersAndPunctuation, capitalizationType: .none, autocorrect: false))
+    var amount: String
+}
 
 struct ExchangeEntry: TimelineEntry, Sendable {
     let date: Date
@@ -17,37 +26,43 @@ struct ExchangeEntry: TimelineEntry, Sendable {
         }, isPreview: true)
 }
 
-struct ExchangeProvider: TimelineProvider {
+struct ExchangeProvider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> ExchangeEntry { .preview }
 
-    func getSnapshot(in context: Context, completion: @escaping @Sendable (ExchangeEntry) -> Void) {
+    func snapshot(for configuration: WidgetAmountIntent, in context: Context) async -> ExchangeEntry {
         if context.isPreview {
-            guard let settings = SharedConversionStore.shared.load() else { completion(.preview); return }
+            let amount = ConversionAmount.parse(configuration.amount)
+            guard let settings = SharedConversionStore.shared.load() else {
+                var preview = ExchangeEntry.preview
+                preview.amount = amount
+                return preview
+            }
             let selection = settings.widgetSelection
             let quotes = selection.quotes.map { quote in
                 QuoteSnapshot(quote: quote, rate: RateCache.shared.latest(for: CurrencyPair(base: selection.base, quote: quote)), isOffline: false)
             }
-            completion(ExchangeEntry(date: .now, selection: selection, quotes: quotes, amount: settings.amount, accent: settings.accent))
-            return
+            return ExchangeEntry(date: .now, selection: selection, quotes: quotes, amount: amount, accent: settings.accent)
         }
-        Task { completion(await entry()) }
+        return await entry(for: configuration)
     }
 
-    func getTimeline(in context: Context, completion: @escaping @Sendable (Timeline<ExchangeEntry>) -> Void) {
-        Task {
-            let entry = await entry()
-            let nextRefresh = Date().addingTimeInterval(entry.isOffline ? 30 * 60 : 4 * 60 * 60)
-            completion(Timeline(entries: [entry], policy: .after(nextRefresh)))
-        }
+    func timeline(for configuration: WidgetAmountIntent, in context: Context) async -> Timeline<ExchangeEntry> {
+        let entry = await entry(for: configuration)
+        let nextRefresh = Date().addingTimeInterval(entry.isOffline ? 30 * 60 : 4 * 60 * 60)
+        return Timeline(entries: [entry], policy: .after(nextRefresh))
     }
 
-    private func entry() async -> ExchangeEntry {
+    private func entry(for configuration: WidgetAmountIntent) async -> ExchangeEntry {
+        let amount = ConversionAmount.parse(configuration.amount)
         guard let settings = SharedConversionStore.shared.load() else {
-            return ExchangeEntry(date: .now, selection: CurrencySelection(base: "EUR", quotes: []), quotes: [])
+            return ExchangeEntry(date: .now, selection: CurrencySelection(base: "EUR", quotes: []), quotes: [], amount: amount)
         }
         let selection = settings.widgetSelection
+        guard amount != nil else {
+            return ExchangeEntry(date: .now, selection: selection, quotes: [], amount: nil, accent: settings.accent)
+        }
         let quotes = await FrankfurterClient().latest(for: selection)
-        return ExchangeEntry(date: .now, selection: selection, quotes: quotes, amount: settings.amount, accent: settings.accent)
+        return ExchangeEntry(date: .now, selection: selection, quotes: quotes, amount: amount, accent: settings.accent)
     }
 }
 
@@ -73,7 +88,7 @@ struct ExchangeWidgetView: View {
             } else {
                 VStack(alignment: .leading, spacing: 8) {
                     Label("Betrag prüfen", systemImage: "exclamationmark.circle").font(.headline)
-                    Text("Öffne die App, um den Betrag zu korrigieren.")
+                    Text("Ändere den Betrag über „Widget bearbeiten“.")
                         .font(.caption).foregroundStyle(.secondary)
                 }
             }
@@ -202,11 +217,11 @@ struct ExchangeWidgetView: View {
 @main
 struct CurrencyWidget: Widget {
     var body: some WidgetConfiguration {
-        StaticConfiguration(kind: "ExchangeWidget", provider: ExchangeProvider()) { entry in
+        AppIntentConfiguration(kind: "ExchangeWidget", intent: WidgetAmountIntent.self, provider: ExchangeProvider()) { entry in
             ExchangeWidgetView(entry: entry)
         }
         .configurationDisplayName("Wechselkurse")
-        .description("Dein Betrag und die ersten drei Vergleichswährungen aus der App.")
+        .description("Eigener Betrag mit den ersten drei Vergleichswährungen aus der App.")
         .supportedFamilies([.systemSmall, .systemMedium])
     }
 }

@@ -499,7 +499,7 @@ private struct InfoView: View {
                     Text("Die Kurse dienen der Orientierung. Tatsächliche Umrechnungskurse können durch Gebühren und Aufschläge abweichen.").foregroundStyle(.secondary)
                 }
                 Section("Homescreen-Widget") {
-                    Text("Halte den Homescreen gedrückt und wähle Bearbeiten → Widget hinzufügen → Devisen. Das Widget übernimmt Betrag, Hauptwährung und die ersten drei Vergleichswährungen aus der App.")
+                    Text("Halte den Homescreen gedrückt und wähle Bearbeiten → Widget hinzufügen → Devisen. Das Widget übernimmt die Hauptwährung und die ersten drei Vergleichswährungen aus der App. Deinen eigenen Betrag legst du über „Widget bearbeiten“ fest.")
                     Text("Über Bearbeiten kannst du die Vergleichswährungen verschieben und löschen. Ihre Reihenfolge bestimmt die Anzeige im Widget. Tippe auf das Widget, um die App zu öffnen. iOS bestimmt den genauen Zeitpunkt der Aktualisierung.")
                 }
                 Section("Offline") {

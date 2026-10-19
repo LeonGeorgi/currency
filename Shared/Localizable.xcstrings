@@ -841,37 +841,37 @@
         }
       }
     },
-    "Dein Betrag und die ersten drei Vergleichswährungen aus der App.": {
+    "Eigener Betrag mit den ersten drei Vergleichswährungen aus der App.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dein Betrag und die ersten drei Vergleichswährungen aus der App."
+            "value": "Eigener Betrag mit den ersten drei Vergleichswährungen aus der App."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your amount and the first three comparison currencies from the app."
+            "value": "Your own amount with the first three comparison currencies from the app."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アプリの金額と上位3つの換算先を表示します。"
+            "value": "独自の金額と、アプリの最初の3つの比較通貨を表示します。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tu importe y las tres primeras monedas de comparación de la app."
+            "value": "Tu propio importe con las tres primeras monedas de comparación de la app."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Votre montant et les trois premières devises de comparaison de l’app."
+            "value": "Votre propre montant avec les trois premières devises de comparaison de l’app."
           }
         }
       }
@@ -1471,37 +1471,37 @@
         }
       }
     },
-    "Halte den Homescreen gedrückt und wähle Bearbeiten → Widget hinzufügen → Devisen. Das Widget übernimmt Betrag, Hauptwährung und die ersten drei Vergleichswährungen aus der App.": {
+    "Halte den Homescreen gedrückt und wähle Bearbeiten → Widget hinzufügen → Devisen. Das Widget übernimmt die Hauptwährung und die ersten drei Vergleichswährungen aus der App. Deinen eigenen Betrag legst du über „Widget bearbeiten“ fest.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Halte den Homescreen gedrückt und wähle Bearbeiten → Widget hinzufügen → Devisen. Das Widget übernimmt Betrag, Hauptwährung und die ersten drei Vergleichswährungen aus der App."
+            "value": "Halte den Homescreen gedrückt und wähle Bearbeiten → Widget hinzufügen → Devisen. Das Widget übernimmt die Hauptwährung und die ersten drei Vergleichswährungen aus der App. Deinen eigenen Betrag legst du über „Widget bearbeiten“ fest."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Touch and hold the Home Screen, then choose Edit → Add Widget → Currencies. The widget uses the amount, base currency, and first three comparison currencies from the app."
+            "value": "Touch and hold the Home Screen, then choose Edit → Add Widget → Currencies. The widget uses the base currency and first three comparison currencies from the app. Set your own amount using Edit Widget."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ホーム画面を長押しして、「編集」→「ウィジェットを追加」→「為替」を選びます。アプリの金額、基準通貨、上位3つの換算先がウィジェットに反映されます。"
+            "value": "ホーム画面を長押しして「編集」→「ウィジェットを追加」→「為替」を選択します。ウィジェットはアプリの基準通貨と最初の3つの比較通貨を使用します。「ウィジェットを編集」で独自の金額を設定できます。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mantén pulsada la pantalla de inicio y elige Editar → Añadir widget → Divisas. El widget usa el importe, la moneda base y las tres primeras monedas de comparación de la app."
+            "value": "Mantén pulsada la pantalla de inicio y elige Editar → Añadir widget → Divisas. El widget usa la moneda base y las tres primeras monedas de comparación de la app. Configura tu propio importe en «Editar widget»."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Maintenez le doigt sur l’écran d’accueil, puis choisissez Modifier → Ajouter un widget → Devises. Le widget reprend le montant, la devise de base et les trois premières devises de comparaison de l’app."
+            "value": "Maintenez l’écran d’accueil appuyé, puis choisissez Modifier → Ajouter un widget → Devises. Le widget utilise la devise de référence et les trois premières devises de comparaison de l’app. Définissez votre propre montant dans « Modifier le widget »."
           }
         }
       }
@@ -2696,37 +2696,37 @@
         }
       }
     },
-    "Öffne die App, um den Betrag zu korrigieren.": {
+    "Ändere den Betrag über „Widget bearbeiten“.": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Öffne die App, um den Betrag zu korrigieren."
+            "value": "Ändere den Betrag über „Widget bearbeiten“."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Open the app to correct the amount."
+            "value": "Change the amount using Edit Widget."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "アプリを開いて金額を修正してください。"
+            "value": "「ウィジェットを編集」で金額を変更してください。"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Abre la app para corregir el importe."
+            "value": "Cambia el importe en «Editar widget»."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ouvrez l’app pour corriger le montant."
+            "value": "Modifiez le montant dans « Modifier le widget »."
           }
         }
       }
