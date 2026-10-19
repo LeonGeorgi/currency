@@ -4,7 +4,8 @@ struct MentalConversionView: View {
     let pair: CurrencyPair
     let rate: Double
     let amount: Double
-    @AppStorage("mentalRules.v1") private var storedRules = Data()
+    // Recompute cached choices when the difficulty model changes.
+    @AppStorage("mentalRules.v2") private var storedRules = Data()
     @State private var rule: MentalRule?
     @State private var isLoading = true
 

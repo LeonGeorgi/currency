@@ -17,6 +17,15 @@ final class MentalMathTests: XCTestCase {
         XCTAssertEqual(rule.trace(amount: 19.99).last!.value, 19.99 * 5.5, accuracy: 1e-12)
     }
 
+    func testPreferTenPercentCorrectionOverMultiplyingByNine() throws {
+        XCTAssertGreaterThan(MentalRule.Operation.multiply(9).effort, MentalRule.Operation.multiply(3).effort)
+        for rate in [177.82, 180] {
+            let rule = try XCTUnwrap(MentalRules.recommend(rate: rate))
+            XCTAssertEqual(rule.operations, [.multiply(2), .multiply(100), .percent(-10)])
+            XCTAssertEqual(rule.trace(amount: 19.99).last!.value, 3598.2, accuracy: 1e-10)
+        }
+    }
+
     func testKnownRuleRemainsStableUntilTooInaccurate() throws {
         let previous = MentalRule(operations: [.multiply(2), .multiply(100), .percent(-10)])
         XCTAssertEqual(MentalRules.recommend(rate: 177.82, keeping: previous), previous)
