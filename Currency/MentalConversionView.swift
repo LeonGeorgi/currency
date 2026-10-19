@@ -32,12 +32,11 @@ struct MentalConversionView: View {
                 }
             }
         }
-        .padding(.vertical, 4)
         .task(id: rate) { await loadRules() }
     }
 
     private var stackedCalculations: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 16) {
             calculation(rule: rules.forward, pair: pair, amount: exampleAmount, rate: rate, reverse: false)
             calculation(rule: rules.reverse, pair: reversePair, amount: reverseAmount, rate: 1 / rate, reverse: true)
         }
@@ -45,7 +44,7 @@ struct MentalConversionView: View {
 
     private func calculation(rule: MentalRule?, pair: CurrencyPair, amount: Double, rate: Double,
                              reverse: Bool, compact: Bool = false) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(verbatim: "\(pair.base) → \(pair.quote)")
                 .font(.caption.weight(.semibold)).foregroundStyle(.secondary)
             if let rule {
@@ -79,8 +78,8 @@ private struct MentalCalculationFlow: View {
     let from: String
     let to: String
     var compact = false
-    @ScaledMetric(relativeTo: .body) private var valueHeight = 30.0
-    @ScaledMetric(relativeTo: .body) private var gap = 8.0
+    @ScaledMetric(relativeTo: .body) private var valueHeight = 24.0
+    @ScaledMetric(relativeTo: .body) private var gap = 4.0
     @Environment(\.layoutDirection) private var layoutDirection
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
@@ -161,7 +160,7 @@ private struct MentalCalculationFlow: View {
     }
 
     private var accessibleLayout: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             ForEach(values.indices, id: \.self) { index in
                 Text(value(at: index))
                     .font(.custom("PatrickHand-Regular", size: 20, relativeTo: .body))
@@ -172,7 +171,7 @@ private struct MentalCalculationFlow: View {
                         ScribbleCalculationArrow(variation: index)
                             .stroke(style: StrokeStyle(lineWidth: 1.2, lineCap: .round, lineJoin: .round))
                             .foregroundStyle(accent.color.opacity(0.45))
-                            .frame(width: 24, height: 48)
+                            .frame(width: 20, height: 36)
                             .accessibilityHidden(true)
                         Text(operation(steps[index].calculation))
                             .font(.custom("PatrickHand-Regular", size: 28, relativeTo: .title3).weight(.semibold))
