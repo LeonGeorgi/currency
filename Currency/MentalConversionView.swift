@@ -75,14 +75,21 @@ private struct MentalCalculationFlow: View {
 
     private var regularLayout: some View {
         HStack(alignment: .top, spacing: 8) {
-            VStack(alignment: .trailing, spacing: gap) {
+            Grid(horizontalSpacing: 5, verticalSpacing: gap) {
                 ForEach(values.indices, id: \.self) { index in
-                    Text(value(at: index))
-                        .font(.custom("PatrickHand-Regular", size: 24, relativeTo: .body))
-                        .foregroundStyle(index == values.count - 1 ? Color.accentColor : Color.primary)
-                        .lineLimit(1).minimumScaleFactor(0.55)
-                        .frame(height: valueHeight, alignment: .leading)
-                        .accessibilityLabel(index == 0 ? String(localized: "Ausgangsbetrag: \(value(at: index))") : index == values.count - 1 ? String(localized: "Ungefähr: \(value(at: index))") : value(at: index))
+                    GridRow(alignment: .firstTextBaseline) {
+                        Text(index == values.count - 1 ? "≈" : "")
+                            .frame(height: valueHeight)
+                        Text(values[index].formatted(.number.precision(.significantDigits(1...12))))
+                            .gridColumnAlignment(.trailing)
+                            .frame(height: valueHeight)
+                        Text(index == 0 ? CurrencyDisplay.symbol(for: from) : index == values.count - 1 ? CurrencyDisplay.symbol(for: to) : "")
+                            .gridColumnAlignment(.leading)
+                            .frame(height: valueHeight)
+                    }
+                    .font(.custom("PatrickHand-Regular", size: 24, relativeTo: .body))
+                    .foregroundStyle(index == values.count - 1 ? Color.accentColor : Color.primary)
+                    .lineLimit(1).minimumScaleFactor(0.55)
                 }
             }
             .fixedSize(horizontal: true, vertical: false)
