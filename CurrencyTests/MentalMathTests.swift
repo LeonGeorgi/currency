@@ -2,6 +2,18 @@ import XCTest
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testPreferTwentyPercentReductionOverEightTenths() throws {
+        let correction = MentalRule(operations: [.percent(-20)])
+        let eightTenths = MentalRule(operations: [.multiply(8), .divide(10)])
+        XCTAssertLessThan(correction.effort, eightTenths.effort)
+        for rate in [0.79, 0.8, 0.81] {
+            XCTAssertEqual(try XCTUnwrap(MentalRules.recommend(rate: rate)).operations, [.percent(-20)])
+        }
+        XCTAssertEqual(try XCTUnwrap(MentalRules.recommend(rate: 1.6)).operations, [.multiply(2), .percent(-20)])
+        // A standalone ×8 still stays available when no decimal division is needed.
+        XCTAssertEqual(try XCTUnwrap(MentalRules.recommend(rate: 8)).operations, [.multiply(8)])
+    }
+
     func testTwentyPercentCorrectionsAreEligibleAndRoundPracticalExamples() throws {
         for (percent, factor, rounded) in [(20, 1.2, 24.0), (-20, 0.8, 16.0)] {
             let rule = MentalRule(operations: [.percent(percent)])
