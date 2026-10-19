@@ -2,6 +2,44 @@ import XCTest
 
 @MainActor
 final class ScreenshotTests: XCTestCase {
+    func testMentalCardPreviewAndNativeShareSheet() {
+        continueAfterFailure = false
+        for (language, locale, title, word, styles) in [
+            ("de", "de_DE", "Kopfrechenkarte", "Verdoppeln", ["Klassisch", "Sanft", "Farbig"]),
+            ("en", "en_US", "Mental math card", "Double", ["Classic", "Soft", "Colorful"]),
+            ("ja", "ja_JP", "暗算カード", "2倍にする", ["クラシック", "ソフト", "カラー"])
+        ] {
+            let app = XCUIApplication()
+            app.launchArguments = ["--screenshots", "-AppleLanguages", "(\(language))", "-AppleLocale", locale]
+            app.launch()
+            waitForRates(in: app)
+            app.buttons["comparison-JPY"].tap()
+            let share = app.buttons["share-mental-card"]
+            XCTAssertTrue(share.waitForExistence(timeout: 10))
+            share.tap()
+            XCTAssertTrue(app.navigationBars[title].waitForExistence(timeout: 5))
+            let image = app.images["mental-share-image"]
+            XCTAssertTrue(image.waitForExistence(timeout: 15))
+            XCTAssertTrue(image.label.contains(word))
+            for style in styles {
+                app.segmentedControls["mental-card-style"].buttons[style].tap()
+                let rendered = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", style), object: image)
+                XCTAssertEqual(XCTWaiter.wait(for: [rendered], timeout: 15), .completed)
+                capture("mental-share-\(language)-\(style)")
+            }
+            app.buttons["mental-share-close"].tap()
+            XCTAssertTrue(share.waitForExistence(timeout: 5))
+            share.tap()
+            let remembered = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", styles.last!), object: image)
+            XCTAssertEqual(XCTWaiter.wait(for: [remembered], timeout: 15), .completed)
+            app.buttons["mental-share-export"].tap()
+            let activity = app.otherElements["ActivityListView"]
+            XCTAssertTrue(activity.waitForExistence(timeout: 10))
+            capture("mental-share-system-\(language)")
+            app.terminate()
+        }
+    }
+
     func testAppearanceAndAlternateIconsPersist() {
         continueAfterFailure = false
         let app = XCUIApplication()

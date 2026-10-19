@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A11CE0000000000000000302 /* Currency/MentalShareCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A11CE0000000000000000301; };
 		650D44970E014767AA5C071A /* Shared/Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AA65EADA4CD9869279060C7 /* Shared/Assets.xcassets */; };
 		9A5B8380DAEA42D9BDB18410 /* Shared/Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 1D5B638D00994FD4BB4EB730 /* Shared/Localizable.xcstrings */; };
 		0AB47E90FBAC437C8E1A4184 /* Shared/Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 1D5B638D00994FD4BB4EB730 /* Shared/Localizable.xcstrings */; };
@@ -87,6 +88,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		A11CE0000000000000000301 /* Currency/MentalShareCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Currency/MentalShareCard.swift; sourceTree = "<group>"; };
 		1D5B638D00994FD4BB4EB730 /* Shared/Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Shared/Localizable.xcstrings; sourceTree = "<group>"; };
 		C7FD98A382C94B41A37CD612 /* Shared/InfoPlist.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Shared/InfoPlist.xcstrings; sourceTree = "<group>"; };
 		4800CF65853849989BEAEE2A /* Currency/AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = Currency/AppIcon.icon; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 				A11CE0000000000000000201 /* Currency/Resources/Fonts/PatrickHand-Regular.ttf */,
 				A11CE0000000000000000105 /* CurrencyTests/MentalMathTests.swift */,
 				A11CE0000000000000000103 /* Currency/MentalConversionView.swift */,
+				A11CE0000000000000000301 /* Currency/MentalShareCard.swift */,
 				A11CE0000000000000000101 /* Currency/MentalMath.swift */,
 				E54D0C275D844F21896B3611 /* Currency/ScreenshotSupport.swift */,
 				E54D0C275D844F21896B3613 /* CurrencyScreenshotTests/ScreenshotTests.swift */,
@@ -377,6 +380,7 @@
 				6951708FFBB86F0ECAAC022F /* Shared/AppAccent.swift in Sources */,
 				9C46CDE14183705B827CC043 /* Currency/AppearanceSettingsView.swift in Sources */,
 				A11CE0000000000000000104 /* Currency/MentalConversionView.swift in Sources */,
+				A11CE0000000000000000302 /* Currency/MentalShareCard.swift in Sources */,
 				A11CE0000000000000000102 /* Currency/MentalMath.swift in Sources */,
 				E54D0C275D844F21896B3610 /* Currency/ScreenshotSupport.swift in Sources */,
 				D59B66CB9E718E09EB7D0D61 /* Shared/ConversionSettings.swift in Sources */,

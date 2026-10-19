@@ -1,7 +1,47 @@
 import XCTest
+import SwiftUI
 @testable import Currency
 
 final class MentalMathTests: XCTestCase {
+    func testShareCardKeepsCompensationIndependentOfExampleAmounts() {
+        let rule = MentalRule(operations: [.divide(10), .compensate(99)])
+        let steps = MentalCardStep.steps(for: rule)
+        XCTAssertEqual(steps.map(\.symbol), ["÷10", "×100", "− \(String(localized: "Start"))"])
+        XCTAssertFalse(steps.last!.instruction.contains("0.1"))
+        XCTAssertEqual(MentalCardStep.steps(for: MentalRule(operations: [.divide(2), .divide(2)])).first?.symbol, "×¼")
+        XCTAssertEqual(MentalCardStep.steps(for: MentalRule(operations: [.third(increasing: false)])).first?.symbol, "−⅓")
+        XCTAssertEqual(MentalCardStep.steps(for: MentalRule(operations: [])).first?.symbol, "≈")
+    }
+
+    @MainActor
+    func testShareCardRendersReadablePNGIncludingFourStepRules() throws {
+        let date = try XCTUnwrap(APIDate.formatter().date(from: "2026-10-16"))
+        let rate = Rate(date: date, base: "EUR", quote: "JPY", rate: 164.48)
+        let recommended = MentalRules.recommendDirections(rate: rate.rate)
+        let examples: [(String, MentalRules.Directions, MentalCardStyle, AppAccent)] = [
+            ("mental-share-classic", recommended, .classic, .original),
+            ("mental-share-soft", recommended, .soft, .original),
+            ("mental-share-color", recommended, .color, .original),
+            ("mental-share-yellow", recommended, .color, .yellow),
+            ("mental-share-four-steps", .init(forward: MentalRule(operations: [.multiply(2), .percent(-10), .compensate(99)]), reverse: nil), .soft, .original)
+        ]
+        for (name, rules, style, accent) in examples {
+            let card = MentalShareCard(rate: rate, rules: rules, accent: accent, style: style)
+            let renderer = ImageRenderer(content: card.environment(\.colorScheme, .light).dynamicTypeSize(.large))
+            renderer.scale = 3
+            let image = try XCTUnwrap(renderer.uiImage)
+            let png = try XCTUnwrap(image.pngData())
+            let decoded = try XCTUnwrap(UIImage(data: png)?.cgImage)
+            XCTAssertEqual(decoded.width, 1080)
+            XCTAssertGreaterThan(decoded.height, 900)
+            XCTAssertTrue(card.accessibleDescription.contains("EUR → JPY"))
+            let attachment = XCTAttachment(image: image)
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            add(attachment)
+        }
+    }
+
     func testYenExampleUsesTheDisplayedStartingAmountForBothResults() throws {
         // Reproduces ARS → JPY: 20 ARS produces a mental starting value of 2.1 JPY,
         // which the currency formatter shows as 2 JPY.

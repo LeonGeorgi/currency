@@ -76,6 +76,7 @@ struct CurrencyHistoryView: View {
     let amount: Double
     @State private var store = ExchangeStore()
     @State private var period: RatePeriod = .month
+    @State private var sharedRate: Rate?
     @AppStorage("chartStartsAtZero") private var chartStartsAtZero = false
 
     var body: some View {
@@ -99,7 +100,14 @@ struct CurrencyHistoryView: View {
                 Section {
                     MentalConversionView(pair: pair, rate: latest.rate, amount: amount)
                 } header: {
-                    Label("Faustregel", systemImage: "lightbulb")
+                    HStack {
+                        Label("Faustregel", systemImage: "lightbulb")
+                        Spacer()
+                        Button("Kopfrechenkarte teilen", systemImage: "square.and.arrow.up") { sharedRate = latest }
+                            .labelStyle(.iconOnly)
+                            .frame(minWidth: 44, minHeight: 44)
+                            .accessibilityIdentifier("share-mental-card")
+                    }
                 }
             }
             Section {
@@ -131,6 +139,7 @@ struct CurrencyHistoryView: View {
         }
         .navigationTitle(Text(verbatim: "\(CurrencyDisplay.flag(for: pair.base)) \(pair.base) → \(CurrencyDisplay.flag(for: pair.quote)) \(pair.quote)"))
         .navigationBarTitleDisplayMode(.inline)
+        .sheet(item: $sharedRate) { rate in MentalSharePreview(rate: rate) }
         .task(id: period) { await load() }
         .refreshable { await load() }
     }
