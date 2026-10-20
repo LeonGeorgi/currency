@@ -2,6 +2,46 @@ import XCTest
 
 @MainActor
 final class ScreenshotTests: XCTestCase {
+    func testGroupedComparisonsAndChartOptionsPersist() {
+        continueAfterFailure = false
+        let app = XCUIApplication()
+        app.launchArguments = ["--screenshots", "-AppleLanguages", "(de)", "-AppleLocale", "de_DE"]
+        app.launch()
+        waitForRates(in: app)
+        XCTAssertTrue(app.buttons["comparison-CHF"].isHittable)
+        app.buttons["make-primary-JPY"].tap()
+        XCTAssertTrue(app.buttons["comparison-EUR"].waitForExistence(timeout: 5))
+        XCTAssertTrue((app.buttons["edit-amount"].value as? String)?.contains("100") == true)
+        app.buttons["make-primary-EUR"].tap()
+        XCTAssertTrue(app.buttons["comparison-JPY"].waitForExistence(timeout: 5))
+        app.buttons["comparison-JPY"].tap()
+        XCTAssertTrue(app.navigationBars["Japanischer Yen"].waitForExistence(timeout: 5))
+
+        func zeroOption() -> XCUIElement {
+            app.buttons["chart-options"].tap()
+            let option = app.descendants(matching: .any).matching(identifier: "chart-starts-at-zero").firstMatch
+            XCTAssertTrue(option.waitForExistence(timeout: 5))
+            return option
+        }
+        let original = zeroOption()
+        original.tap()
+        app.terminate()
+        app.launchArguments.append("--keep-screenshot-settings")
+        app.launch()
+        waitForRates(in: app)
+        app.buttons["comparison-JPY"].tap()
+        let remembered = zeroOption()
+        XCTAssertTrue(remembered.isSelected || remembered.value as? String == "1", remembered.debugDescription)
+        remembered.tap()
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        app.buttons["Mehr"].tap()
+        app.buttons["open-settings"].tap()
+        XCTAssertTrue(app.navigationBars["Erscheinungsbild"].waitForExistence(timeout: 5))
+        app.buttons["appearance-about"].tap()
+        XCTAssertTrue(app.navigationBars["Über Devisen"].waitForExistence(timeout: 5))
+        app.terminate()
+    }
+
     func testMentalCardPreviewAndNativeShareSheet() {
         continueAfterFailure = false
         for (language, locale, title, word, styles) in [
@@ -25,6 +65,7 @@ final class ScreenshotTests: XCTestCase {
                 app.segmentedControls["mental-card-style"].buttons[style].tap()
                 let rendered = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", style), object: image)
                 XCTAssertEqual(XCTWaiter.wait(for: [rendered], timeout: 15), .completed)
+                XCTAssertTrue(app.buttons["mental-share-export"].isHittable)
                 capture("mental-share-\(language)-\(style)")
             }
             app.buttons["mental-share-close"].tap()
@@ -275,16 +316,17 @@ final class ScreenshotTests: XCTestCase {
             capture("\(language)--overview-light")
 
             app.buttons["comparison-JPY"].tap()
-            let calculation = app.descendants(matching: .any).matching(identifier: "mental-calculation").firstMatch
-            XCTAssertTrue(calculation.waitForExistence(timeout: 10))
-            XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "mental-calculation-reverse").firstMatch.waitForExistence(timeout: 5))
-            capture("\(language)--mental-math")
-            for _ in 0..<5 {
-                if app.switches["chart-starts-at-zero"].isHittable { break }
-                app.swipeUp()
-            }
             XCTAssertTrue(app.staticTexts["history-summary"].waitForExistence(timeout: 10))
             capture("\(language)--history")
+            let calculation = app.descendants(matching: .any).matching(identifier: "mental-calculation").firstMatch
+            let reverse = app.descendants(matching: .any).matching(identifier: "mental-calculation-reverse").firstMatch
+            for _ in 0..<3 {
+                if reverse.isHittable { break }
+                app.swipeUp()
+            }
+            XCTAssertTrue(calculation.waitForExistence(timeout: 10))
+            XCTAssertTrue(reverse.waitForExistence(timeout: 5))
+            capture("\(language)--mental-math")
 
             app.navigationBars.buttons.element(boundBy: 0).tap()
             app.buttons["edit-currencies"].tap()

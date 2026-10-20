@@ -13,7 +13,7 @@ struct ContentView: View {
     @State private var showingInfo = false
     @State private var showingSettings = false
     @Environment(\.appAccent) private var accent
-    @ScaledMetric(relativeTo: .largeTitle) private var amountFontSize = 60
+    @ScaledMetric(relativeTo: .largeTitle) private var amountFontSize = 50
     @FocusState private var editingAmount: Bool
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -33,11 +33,12 @@ struct ContentView: View {
             List {
                 Section {
                     primaryCurrency
-                        .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 0, trailing: 20))
+                        .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 0, trailing: 0))
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     amountPresets
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 32, trailing: 0))
+                        .padding(.horizontal, -16)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 4, trailing: 0))
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                 }
@@ -50,32 +51,26 @@ struct ContentView: View {
                             .listRowSeparator(.hidden)
                     }
                     ForEach(quotes, id: \.self) { quote in
-                        comparisonCard(quote)
-                            .listRowInsets(EdgeInsets(top: 0, leading: 20, bottom: 12, trailing: 20))
-                            .listRowBackground(Color.clear)
-                            .listRowSeparator(.hidden)
+                        comparisonRow(quote)
+                            .listRowInsets(EdgeInsets(top: 6, leading: 14, bottom: 6, trailing: 4))
+                            .alignmentGuide(.listRowSeparatorLeading) { _ in 48 }
                     }
                     .onMove(perform: moveQuotes)
                     .onDelete(perform: deleteQuotes)
                 } header: {
                     HStack {
-                        Text("Vergleiche").font(.title3.weight(.semibold)).foregroundStyle(Color.primary)
+                        Text("Vergleiche")
                         Spacer()
                         Button("Währungen auswählen", systemImage: "plus") {
                             editingAmount = false
                             picker = .comparisons
                         }
                         .labelStyle(.iconOnly)
-                        .buttonStyle(.glass)
-                        .buttonBorderShape(.circle)
+                        .buttonStyle(.plain)
                         .frame(minWidth: 44, minHeight: 44)
                     }
                     .textCase(nil)
-                    .padding(.bottom, 8)
-                }
-                .listSectionSeparator(.hidden)
-
-                Section {
+                } footer: {
                     VStack(spacing: 12) {
                         if let first = rateDates.first, let last = rateDates.last {
                             Label {
@@ -87,7 +82,7 @@ struct ContentView: View {
                             } icon: {
                                 Image(systemName: "clock")
                             }
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(.caption).foregroundStyle(Color(uiColor: .secondaryLabel))
                         }
                         if store.quotes.contains(where: \.isOffline) {
                             Button("Kurse erneut laden", systemImage: "arrow.clockwise") {
@@ -97,13 +92,12 @@ struct ContentView: View {
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.top, 8)
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
+                    .padding(.top, 6)
                 }
-                .listSectionSeparator(.hidden)
             }
-            .listStyle(.plain)
+            .listStyle(.insetGrouped)
+            .listSectionSpacing(12)
+            .contentMargins(.top, 0, for: .scrollContent)
             .environment(\.editMode, $editMode)
             .listRowSpacing(0)
             .scrollContentBackground(.hidden)
@@ -120,7 +114,7 @@ struct ContentView: View {
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu("Mehr", systemImage: "ellipsis") {
-                        Button("Einstellungen", systemImage: "gearshape") { showingSettings = true }
+                        Button("Erscheinungsbild", systemImage: "paintpalette") { showingSettings = true }
                             .accessibilityIdentifier("open-settings")
                         Button("Aktualisieren", systemImage: "arrow.clockwise") { Task { await refresh() } }
                         Button("Über Devisen", systemImage: "info.circle") { showingInfo = true }
@@ -148,7 +142,12 @@ struct ContentView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingInfo) { InfoView() }
+            .sheet(isPresented: $showingInfo) {
+                NavigationStack {
+                    InfoView()
+                        .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fertig") { showingInfo = false } } }
+                }
+            }
             .sheet(isPresented: $showingSettings) { AppearanceSettingsView() }
             .task { await store.loadCurrencies() }
             .task(id: selection) { await store.loadRates(selection: selection) }
@@ -180,20 +179,21 @@ struct ContentView: View {
     }
 
     private var primaryCurrency: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 4) {
             Button {
                 editingAmount = false
                 picker = .base
             } label: {
                 HStack(spacing: 8) {
-                    Text(verbatim: "\(CurrencyDisplay.flag(for: base)) \(base)").fontWeight(.semibold)
-                    Image(systemName: "chevron.up.chevron.down").font(.caption2.weight(.semibold))
+                    Text(verbatim: "\(CurrencyDisplay.flag(for: base)) \(currencyName(base))")
+                        .lineLimit(1).minimumScaleFactor(0.75)
+                    Image(systemName: "chevron.down").font(.caption2.weight(.medium))
                 }
-                .padding(.horizontal, 4)
+                .font(.callout.weight(.medium))
+                .foregroundStyle(accent.color)
+                .frame(minHeight: 44)
             }
-            .buttonStyle(.glass)
-            .buttonBorderShape(.capsule)
-            .controlSize(.large)
+            .buttonStyle(.plain)
             .accessibilityLabel("Von: \(base). Währung auswählen")
 
             VStack(spacing: 6) {
@@ -238,12 +238,10 @@ struct ContentView: View {
                 .monospacedDigit()
                 .minimumScaleFactor(0.4)
                 .lineLimit(1)
-                Text(currencyName(base)).font(.subheadline).foregroundStyle(.secondary)
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 20)
-        .padding(.bottom, 12)
+        .padding(.vertical, 4)
     }
 
     private var amountPresets: some View {
@@ -256,7 +254,7 @@ struct ContentView: View {
                             amount = preset
                         } label: {
                             Text(preset, format: .currency(code: base).precision(.fractionLength(0...CurrencyDisplay.fractionDigits(for: base))))
-                                .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                                .font(.system(.subheadline, design: .rounded, weight: .medium))
                                 .fixedSize()
                         }
                         .buttonStyle(.glass)
@@ -270,9 +268,10 @@ struct ContentView: View {
                     }
                 }
                 .scrollTargetLayout()
-                .padding(.vertical, 8)
+                .padding(.vertical, 6)
             }
             .scrollIndicators(.hidden)
+            .scrollClipDisabled()
             .contentMargins(.horizontal, 20, for: .scrollContent)
             .scrollTargetBehavior(.viewAligned(limitBehavior: .alwaysByOne))
             .accessibilityIdentifier("amount-presets")
@@ -290,9 +289,9 @@ struct ContentView: View {
         }
     }
 
-    private func comparisonCard(_ quote: String) -> some View {
+    private func comparisonRow(_ quote: String) -> some View {
         let snapshot = store.quotes.first { $0.quote == quote }
-        return HStack(spacing: 16) {
+        return HStack(spacing: 2) {
             if editMode.isEditing {
                 comparisonContent(quote, snapshot: snapshot)
             } else {
@@ -302,57 +301,75 @@ struct ContentView: View {
                     comparisonContent(quote, snapshot: snapshot)
                 }
                 .buttonStyle(.plain)
+                .contextMenu {
+                    Button("Als Ausgangswährung verwenden", systemImage: "scope") { makePrimary(quote) }
+                }
                 .accessibilityIdentifier("comparison-\(quote)")
                 .accessibilityLabel("\(quote): \(snapshot?.rate.map { CurrencyDisplay.amount(amount * $0.rate, code: quote) } ?? String(localized: "Nicht verfügbar")). Verlauf anzeigen")
                 Button {
                     editingAmount = false
                     makePrimary(quote)
                 } label: {
-                    Image(systemName: "scope").font(.subheadline.weight(.semibold))
-                        .frame(width: 28, height: 28)
+                    Image(systemName: "scope").font(.body)
+                        .foregroundStyle(.secondary)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .contentShape(Rectangle())
                 }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.circle)
-                .frame(minWidth: 44, minHeight: 44)
+                .buttonStyle(.plain)
                 .accessibilityLabel("\(quote) zur Hauptwährung machen")
+                .accessibilityIdentifier("make-primary-\(quote)")
             }
         }
-        .padding(18)
-        .background(Color(uiColor: .secondarySystemGroupedBackground), in: .rect(cornerRadius: 24))
+        .frame(minHeight: 60)
     }
 
     private func comparisonContent(_ quote: String, snapshot: QuoteSnapshot?) -> some View {
-        HStack(spacing: 14) {
-            Text(CurrencyDisplay.flag(for: quote)).font(.system(size: 32)).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 7) {
+        HStack(spacing: 10) {
+            Text(CurrencyDisplay.flag(for: quote)).font(.system(size: 25)).accessibilityHidden(true)
+            Group {
                 if dynamicTypeSize.isAccessibilitySize {
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(quote).font(.subheadline.weight(.semibold))
-                        Text(currencyName(quote)).font(.caption).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: 6) {
+                        comparisonLabel(quote)
+                        comparisonAmount(quote, snapshot: snapshot)
                     }
                 } else {
-                    HStack(alignment: .firstTextBaseline, spacing: 8) {
-                        Text(quote).font(.subheadline.weight(.semibold))
-                        Text(currencyName(quote)).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    HStack(spacing: 8) {
+                        comparisonLabel(quote)
+                        Spacer(minLength: 4)
+                        comparisonAmount(quote, snapshot: snapshot)
+                            .layoutPriority(1)
                     }
-                }
-                if let rate = snapshot?.rate, rate.base == base {
-                    Text(CurrencyDisplay.amount(amount * rate.rate, code: quote))
-                        .font(.system(.title2, design: .rounded, weight: .semibold))
-                        .monospacedDigit().minimumScaleFactor(0.5).lineLimit(1)
-                } else if store.loadingRate {
-                    ProgressView().frame(height: 27)
-                } else {
-                    Text("Nicht verfügbar").foregroundStyle(.secondary)
-                }
-                if snapshot?.isOffline == true {
-                    Label(snapshot?.rate == nil ? String(localized: "Konnte nicht geladen werden") : String(localized: "Gespeicherter Kurs"), systemImage: "wifi.slash")
-                        .font(.caption).foregroundStyle(.secondary)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .frame(minHeight: 48)
         .contentShape(Rectangle())
+    }
+
+    private func comparisonLabel(_ quote: String) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Text(currencyName(quote)).font(.subheadline).lineLimit(dynamicTypeSize.isAccessibilitySize ? nil : 1)
+            Text(quote).font(.caption2).foregroundStyle(.secondary)
+        }
+    }
+
+    private func comparisonAmount(_ quote: String, snapshot: QuoteSnapshot?) -> some View {
+        VStack(alignment: dynamicTypeSize.isAccessibilitySize ? .leading : .trailing, spacing: 4) {
+            if let rate = snapshot?.rate, rate.base == base {
+                Text(CurrencyDisplay.amount(amount * rate.rate, code: quote))
+                    .font(.system(.title3, design: .rounded, weight: .medium))
+                    .monospacedDigit().minimumScaleFactor(0.7).lineLimit(1)
+            } else if store.loadingRate {
+                ProgressView().frame(height: 27)
+            } else {
+                Text("Nicht verfügbar").font(.subheadline).foregroundStyle(.secondary)
+            }
+            if snapshot?.isOffline == true {
+                Label(snapshot?.rate == nil ? String(localized: "Konnte nicht geladen werden") : String(localized: "Gespeicherter Kurs"), systemImage: "wifi.slash")
+                    .font(.caption2).foregroundStyle(.secondary)
+            }
+        }
     }
 
     private func moveQuotes(from offsets: IndexSet, to destination: Int) {
@@ -368,6 +385,7 @@ struct ContentView: View {
     }
 
     private func makePrimary(_ quote: String) {
+        editingAmount = false
         // Replace the promoted currency with the previous base, retaining all other comparisons.
         let nextQuotes = quotes.map { $0 == quote ? base : $0 }
         storedQuotes = CurrencySelection.storeQuotes(nextQuotes)
@@ -488,27 +506,23 @@ struct CurrencyPicker: View {
     }
 }
 
-private struct InfoView: View {
-    @Environment(\.dismiss) private var dismiss
+struct InfoView: View {
     var body: some View {
-        NavigationStack {
-            Form {
-                Section("Datenquelle") {
-                    Text("Frankfurter stellt tägliche Referenzkurse aus offiziellen Quellen bereit. An Wochenenden und Feiertagen kann der zuletzt veröffentlichte Kurs angezeigt werden.")
-                    Link("Frankfurter API", destination: URL(string: "https://frankfurter.dev")!)
-                    Text("Die Kurse dienen der Orientierung. Tatsächliche Umrechnungskurse können durch Gebühren und Aufschläge abweichen.").foregroundStyle(.secondary)
-                }
-                Section("Homescreen-Widget") {
-                    Text("Halte den Homescreen gedrückt und wähle Bearbeiten → Widget hinzufügen → Devisen. Das Widget übernimmt die Hauptwährung und die ersten drei Vergleichswährungen aus der App. Deinen eigenen Betrag legst du über „Widget bearbeiten“ fest.")
-                    Text("Über Bearbeiten kannst du die Vergleichswährungen verschieben und löschen. Ihre Reihenfolge bestimmt die Anzeige im Widget. Tippe auf das Widget, um die App zu öffnen. iOS bestimmt den genauen Zeitpunkt der Aktualisierung.")
-                }
-                Section("Offline") {
-                    Text("Zuletzt geladene Kurse und Zeitreihen bleiben auf diesem Gerät gespeichert. Schlägt eine Aktualisierung fehl, werden gespeicherte Daten entsprechend gekennzeichnet.")
-                }
+        Form {
+            Section("Datenquelle") {
+                Text("Frankfurter stellt tägliche Referenzkurse aus offiziellen Quellen bereit. An Wochenenden und Feiertagen kann der zuletzt veröffentlichte Kurs angezeigt werden.")
+                Link("Frankfurter API", destination: URL(string: "https://frankfurter.dev")!)
+                Text("Die Kurse dienen der Orientierung. Tatsächliche Umrechnungskurse können durch Gebühren und Aufschläge abweichen.").foregroundStyle(.secondary)
             }
-            .navigationTitle("Über Devisen")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("Fertig") { dismiss() } } }
+            Section("Homescreen-Widget") {
+                Text("Halte den Homescreen gedrückt und wähle Bearbeiten → Widget hinzufügen → Devisen. Das Widget übernimmt die Hauptwährung und die ersten drei Vergleichswährungen aus der App. Deinen eigenen Betrag legst du über „Widget bearbeiten“ fest.")
+                Text("Über Bearbeiten kannst du die Vergleichswährungen verschieben und löschen. Ihre Reihenfolge bestimmt die Anzeige im Widget. Tippe auf das Widget, um die App zu öffnen. iOS bestimmt den genauen Zeitpunkt der Aktualisierung.")
+            }
+            Section("Offline") {
+                Text("Zuletzt geladene Kurse und Zeitreihen bleiben auf diesem Gerät gespeichert. Schlägt eine Aktualisierung fehl, werden gespeicherte Daten entsprechend gekennzeichnet.")
+            }
         }
+        .navigationTitle("Über Devisen")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

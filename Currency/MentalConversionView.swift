@@ -101,7 +101,7 @@ private struct MentalCalculationFlow: View {
                         .foregroundStyle(accent.color)
                     Text(CurrencyDisplay.amount(amount, code: to))
                 }
-                .font(.custom("PatrickHand-Regular", size: compact ? 17 : 19, relativeTo: .subheadline))
+                .font(.subheadline).monospacedDigit()
                 .foregroundStyle(.secondary)
             } else if dynamicTypeSize.isAccessibilitySize { accessibleLayout }
             else {
@@ -128,7 +128,7 @@ private struct MentalCalculationFlow: View {
                             .gridColumnAlignment(.leading)
                             .frame(height: valueHeight)
                     }
-                    .font(.custom("PatrickHand-Regular", size: compact ? 17 : 19, relativeTo: .subheadline))
+                    .font(.subheadline).monospacedDigit()
                     .foregroundStyle(.secondary)
                     .lineLimit(1).minimumScaleFactor(0.55)
                 }
@@ -163,7 +163,7 @@ private struct MentalCalculationFlow: View {
         VStack(alignment: .leading, spacing: 12) {
             ForEach(values.indices, id: \.self) { index in
                 Text(value(at: index))
-                    .font(.custom("PatrickHand-Regular", size: 20, relativeTo: .body))
+                    .font(.body).monospacedDigit()
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
                 if index < steps.count {

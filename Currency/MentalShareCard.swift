@@ -229,6 +229,7 @@ struct MentalSharePreview: View {
     @State private var failed = false
     @State private var noRule = false
     @State private var renderedStyle: MentalCardStyle?
+    @State private var rules: MentalRules.Directions?
 
     var body: some View {
         NavigationStack {
@@ -241,19 +242,12 @@ struct MentalSharePreview: View {
                     }
                     .pickerStyle(.segmented)
                     .accessibilityIdentifier("mental-card-style")
-                    if let image, let export {
+                    if let image {
                         Image(uiImage: image)
                             .resizable().scaledToFit()
                             .accessibilityLabel(description)
                             .accessibilityValue(renderedStyle?.title ?? "")
                             .accessibilityIdentifier("mental-share-image")
-                        ShareLink(item: export, preview: SharePreview(Text("Kopfrechenkarte"), image: Image(uiImage: image))) {
-                            Label("Karte teilen", systemImage: "square.and.arrow.up")
-                                .font(.headline).frame(maxWidth: .infinity, minHeight: 30)
-                        }
-                        .buttonStyle(.glassProminent).controlSize(.large)
-                        .disabled(renderedStyle != style)
-                        .accessibilityIdentifier("mental-share-export")
                     } else if noRule {
                         ContentUnavailableView("Keine einfache Faustregel", systemImage: "lightbulb", description: Text("Für diesen Kurs gibt es gerade keine einfache Faustregel."))
                     } else if failed {
@@ -271,6 +265,21 @@ struct MentalSharePreview: View {
                 .padding(20)
             }
             .background(Color(uiColor: .systemGroupedBackground))
+            .safeAreaInset(edge: .bottom, spacing: 0) {
+                if let image, let export {
+                    ShareLink(item: export, preview: SharePreview(Text("Kopfrechenkarte"), image: Image(uiImage: image))) {
+                        Label("Karte teilen", systemImage: "square.and.arrow.up")
+                            .font(.headline).frame(maxWidth: .infinity, minHeight: 30)
+                    }
+                    .buttonStyle(.glassProminent).controlSize(.large)
+                    .disabled(renderedStyle != style)
+                    .accessibilityIdentifier("mental-share-export")
+                    .frame(maxWidth: 420)
+                    .padding(.horizontal, 20).padding(.vertical, 12)
+                    .frame(maxWidth: .infinity)
+                    .background(.bar)
+                }
+            }
             .navigationTitle("Kopfrechenkarte")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -289,20 +298,26 @@ struct MentalSharePreview: View {
     private func prepare() async {
         failed = false
         noRule = false
-        image = nil
-        export = nil
-        renderedStyle = nil
         let selectedStyle = style
         let value = rate.rate
-        let rules = await Task.detached(priority: .userInitiated) { MentalRules.recommendDirections(rate: value) }.value
+        let directions: MentalRules.Directions
+        if let rules { directions = rules }
+        else { directions = await Task.detached(priority: .userInitiated) { MentalRules.recommendDirections(rate: value) }.value }
         guard !Task.isCancelled else { return }
-        guard rules.forward != nil || rules.reverse != nil else { noRule = true; return }
-        let card = MentalShareCard(rate: rate, rules: rules, accent: accent, style: selectedStyle)
+        rules = directions
+        guard directions.forward != nil || directions.reverse != nil else { noRule = true; return }
+        let card = MentalShareCard(rate: rate, rules: directions, accent: accent, style: selectedStyle)
         // A fixed light canvas and type size make the shared image independent of the sender's display settings.
         let renderer = ImageRenderer(content: card.environment(\.colorScheme, .light).environment(\.locale, locale).dynamicTypeSize(.large))
         renderer.scale = 3
         renderer.isOpaque = false
-        guard let rendered = renderer.uiImage, let data = rendered.pngData() else { failed = true; return }
+        guard let rendered = renderer.uiImage, let data = rendered.pngData() else {
+            image = nil
+            export = nil
+            renderedStyle = nil
+            failed = true
+            return
+        }
         description = card.accessibleDescription
         image = rendered
         export = MentalCardPNG(data: data, filename: "\(rate.base)-\(rate.quote)-\(APIDate.string(rate.date)).png")

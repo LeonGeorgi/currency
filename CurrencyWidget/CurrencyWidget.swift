@@ -123,7 +123,7 @@ struct ExchangeWidgetView: View {
                 }
             }
             Spacer(minLength: 0)
-            Text(footer).font(.system(size: 9)).foregroundStyle(.secondary)
+            Text(footer).font(.caption2).foregroundStyle(.secondary)
                 .lineLimit(1).minimumScaleFactor(0.7)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
@@ -137,21 +137,17 @@ struct ExchangeWidgetView: View {
                 Text(footer).font(.caption2).foregroundStyle(.secondary)
                     .lineLimit(1).minimumScaleFactor(0.7)
             }
-            Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-                if entry.quotes.count <= 2 {
-                    GridRow {
-                        ForEach(entry.quotes) { snapshot in
-                            quoteCard(snapshot, amount: amount)
-                        }
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: 12) {
+                    ForEach(entry.quotes) { snapshot in
+                        quoteRow(snapshot, amount: amount, compact: false)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                } else {
-                    GridRow {
-                        quoteCard(entry.quotes[0], amount: amount)
-                        quoteCard(entry.quotes[1], amount: amount)
-                    }
-                    GridRow {
-                        quoteCard(entry.quotes[2], amount: amount)
-                            .gridCellColumns(2)
+                }
+                VStack(alignment: .leading, spacing: 5) {
+                    ForEach(entry.quotes) { snapshot in
+                        quoteRow(snapshot, amount: amount, compact: false)
                     }
                 }
             }
@@ -160,10 +156,10 @@ struct ExchangeWidgetView: View {
     }
 
     private func quoteRow(_ snapshot: QuoteSnapshot, amount: Double, compact: Bool) -> some View {
-        HStack(spacing: compact ? 7 : 9) {
+        HStack(spacing: compact ? 7 : 6) {
             Text(CurrencyDisplay.flag(for: snapshot.quote))
-                .font(.system(size: compact ? 23 : 26))
-                .frame(width: compact ? 28 : 32)
+                .font(.system(size: compact ? 23 : 22))
+                .frame(width: compact ? 28 : 26)
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 4) {
                     Text(snapshot.quote)
@@ -171,11 +167,11 @@ struct ExchangeWidgetView: View {
                         Image(systemName: "wifi.slash")
                     }
                 }
-                .font(.system(size: compact ? 9 : 10, weight: .medium))
+                .font(.caption2)
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
                 Text(convertedAmount(snapshot, amount: amount))
-                    .font(.system(size: compact ? 14 : 18, weight: .semibold, design: .rounded))
+                    .font(.system(size: compact ? 14 : 17, weight: .medium, design: .rounded))
                     .monospacedDigit().lineLimit(1).minimumScaleFactor(0.5)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
@@ -183,13 +179,6 @@ struct ExchangeWidgetView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(quoteDescription(snapshot, amount: amount))
-    }
-
-    private func quoteCard(_ snapshot: QuoteSnapshot, amount: Double) -> some View {
-        quoteRow(snapshot, amount: amount, compact: false)
-            .padding(8)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-            .background(Color(uiColor: .secondarySystemGroupedBackground), in: .rect(cornerRadius: 14))
     }
 
     private func convertedAmount(_ snapshot: QuoteSnapshot, amount: Double) -> String {

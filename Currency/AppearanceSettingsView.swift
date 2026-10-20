@@ -13,19 +13,19 @@ struct AppearanceSettingsView: View {
         NavigationStack {
             Form {
                 Section {
-                    VStack(spacing: 16) {
+                    VStack(spacing: 10) {
                         Image(selectedAccent.previewName)
                             .resizable()
                             .scaledToFit()
-                            .frame(width: 128, height: 128)
+                            .frame(width: 80, height: 80)
                             .accessibilityLabel("App-Icon")
                             .accessibilityValue(selectedAccent.title)
                             .accessibilityIdentifier("current-icon-preview")
                         Text(Bundle.main.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String ?? "Devisen")
-                            .font(.title2.weight(.semibold))
+                            .font(.title3.weight(.medium))
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 24)
+                    .padding(.vertical, 12)
                 }
                 .listRowBackground(Color.clear)
 
@@ -62,8 +62,12 @@ struct AppearanceSettingsView: View {
                 } footer: {
                     Text("Die Farbe gilt für App, Widget und App-Icon.")
                 }
+                Section {
+                    NavigationLink("Über Devisen") { InfoView() }
+                        .accessibilityIdentifier("appearance-about")
+                }
             }
-            .navigationTitle("Einstellungen")
+            .navigationTitle("Erscheinungsbild")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
